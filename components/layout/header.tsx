@@ -12,8 +12,7 @@ const marqueeItems = [
   "CASH ON DELIVERY AVAILABLE",
   "ALL INDIA DELIVERY",
   "KERALA BASED",
-  "EASY RETURNS",
-  "AUTHENTIC PRODUCTS",
+
 ];
 
 const Header = () => {
