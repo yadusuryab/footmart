@@ -12,11 +12,11 @@ const Brand: React.FC<BrandProps> = ({ small = false, className = "" }) => {
     <div className={className}>
       {/* If SVG file is already optimized, keep using Image */}
       <img
-        src="/logo-kn.svg" // ✅ Direct path if SVG
+        src="/logo.png" // ✅ Direct path if SVG
         width={small ? 64 : 54}
         height={small ? 54 : 54}
         alt={site.name}
-        className={`object-contain ${small ? "max-w-full" : "max-w-full"}`}
+        className={`object-contain rounded-full ${small ? "max-w-full" : "max-w-full"}`}
         loading="eager"
       />
     </div>

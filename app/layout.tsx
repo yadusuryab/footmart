@@ -72,7 +72,7 @@ export default function RootLayout({
       
       <body className={`${poppins.className} antialiased bg-[#f7f7f7]`}>
         <Header />
-        <main className="py-5 min-h-screen">
+        <main className="py-1 min-h-screen">
           {children}
         </main>
         <Footer />

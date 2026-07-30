@@ -27,7 +27,7 @@ function MarqueeRow({
         {doubled.map((src, i) => (
           <div
             key={`${src}-${i}`}
-            className="relative h-64 w-36 shrink-0 overflow-hidden rounded-xl shadow-md ring-1 ring-black/5 sm:h-80 sm:w-44"
+            className="relative h-64 w-36 shrink-0 overflow-hidden rounded-2xl border-4 border-black shadow-[4px_4px_0_0_#000] sm:h-80 sm:w-44 even:-rotate-2 odd:rotate-2"
           >
             <Image
               src={src}
@@ -70,7 +70,8 @@ export function ReviewsMarquee() {
   if (loading) {
     return (
       <section className="py-12">
-        <div className="flex justify-center text-sm text-neutral-400">
+        <div className="flex justify-center gap-2 text-sm font-bold uppercase tracking-widest text-black/50">
+          <div className="w-4 h-4 border-2 border-black/40 border-t-black rounded-full animate-spin" />
           Loading reviews…
         </div>
       </section>
@@ -88,17 +89,19 @@ export function ReviewsMarquee() {
 
   return (
     <section className="py-12">
-      <h2 className="mb-8 text-center text-2xl font-semibold tracking-tight sm:text-3xl">
-        Loved by our customers
-      </h2>
+      <div className="flex justify-center mb-8">
+        <h2 className="inline-block bg-black text-primary text-2xl sm:text-3xl font-black italic uppercase tracking-tight px-5 py-2 rounded-full border-2 border-white shadow-[3px_3px_0_0_#000] -rotate-1">
+          Loved by our customers
+        </h2>
+      </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <MarqueeRow images={rowA} direction="left" speedSeconds={Math.max(40, rowA.length * 4)} />
         {rowB.length > 0 && (
           <MarqueeRow images={rowB} direction="right" speedSeconds={Math.max(40, rowB.length * 4)} />
         )}
       </div>
-{/*hi*/}
+
       <style jsx global>{`
         @keyframes marquee-left {
           from {
