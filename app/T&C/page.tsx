@@ -165,7 +165,7 @@ const TermsAndConditions = () => {
         </p>
 
         <p className="mt-3 text-center font-semibold">
-          BEST REGARDS, kicksnot.kerala TEAM
+          BEST REGARDS, footmart TEAM
         </p>
       </div>
     </CardContent>

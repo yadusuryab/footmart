@@ -238,7 +238,7 @@ export default function CheckoutPage() {
                 <div
                   className={`flex items-start gap-3 rounded-2xl border-2 p-4 cursor-pointer transition-all ${
                     shippingMethod === "cod"
-                      ? "border-black bg-white shadow-[3px_3px_0_0_#000]"
+                      ? "border-black bg-primary shadow-[3px_3px_0_0_#000]"
                       : "border-black/20 hover:border-black/50"
                   }`}
                   onClick={() => setShippingMethod("cod")}

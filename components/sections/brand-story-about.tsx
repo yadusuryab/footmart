@@ -103,7 +103,7 @@ export default function BrandStory() {
         <div className="max-w-2xl mx-auto text-center">
           <div className="w-20 h-1 bg-gradient-to-r from-gray-300 to-gray-100 mx-auto mb-8 rounded-full"></div>
           <h2 className="text-lg md:text-4xl font-bold text-primary  text-gray-900">
-            kicksnot.kerala 
+            footmart 
           </h2>
           <div className="space-y-4 text-gray-600">
             
@@ -346,7 +346,7 @@ export default function BrandStory() {
     <div className="max-w-md mx-auto space-y-6">
       <h2 className="text-2xl md:text-3xl font-light text-gray-900">Ready to Walk Better?</h2>
       <p className="text-gray-600">
-        Experience the kicksnot.kerala difference - quality, comfort, and style in every step.
+        Experience the footmart difference - quality, comfort, and style in every step.
       </p>
       <Link href="/offer" className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-full font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl">
         View Offer
