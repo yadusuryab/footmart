@@ -12,7 +12,7 @@ interface ProductListProps {
 }
 
 const ProductCardSkeleton = () => (
-  <div className="animate-pulse bg-muted rounded-lg aspect-square"></div>
+  <div className="animate-pulse bg-primary/15 border-4 border-black/10 rounded-2xl aspect-square"></div>
 );
 
 function ProductList({ price }: ProductListProps) {
@@ -30,7 +30,7 @@ function ProductList({ price }: ProductListProps) {
       setLoading(true);
       const { getAllShoes } = await import("@/lib/vehicleQueries");
       const data: any = await getAllShoes(price, loadLimit, loadOffset);
-      
+
       if (data?.length) {
         setVehicles(prev => loadOffset === 0 ? data : [...prev, ...data]);
         setHasMore(data.length === loadLimit);
@@ -66,11 +66,11 @@ function ProductList({ price }: ProductListProps) {
     let throttleTimeout: NodeJS.Timeout;
     const handleScroll = () => {
       if (throttleTimeout) return;
-      
+
       throttleTimeout = setTimeout(() => {
         const scrollPosition = window.innerHeight + window.scrollY;
         const pageHeight = document.documentElement.scrollHeight;
-        
+
         // ✅ Load more when 1500px from bottom (reduced trigger frequency)
         if (scrollPosition >= pageHeight - 1500) {
           loadMore();
@@ -87,8 +87,8 @@ function ProductList({ price }: ProductListProps) {
   }, [loadMore, hasMore, loading, initialLoadDone]);
 
   // Memoized BOGO products
-  const bogoProducts = useMemo(() => 
-    vehicles.filter(item => item.buyOneGetOne), 
+  const bogoProducts = useMemo(() =>
+    vehicles.filter(item => item.buyOneGetOne),
     [vehicles]
   );
 
@@ -110,11 +110,16 @@ function ProductList({ price }: ProductListProps) {
   if (vehicles.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-          <Filter className="h-10 w-10 text-muted-foreground" />
+        <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-black shadow-[3px_3px_0_0_#000]">
+          <Filter className="h-10 w-10 text-black" />
         </div>
-        <h3 className="text-xl font-semibold mb-2">No Products Found</h3>
-        <Button onClick={() => loadProducts(0, 12)}>Try Again</Button>
+        <h3 className="text-xl font-black mb-2">No Products Found</h3>
+        <Button
+          onClick={() => loadProducts(0, 12)}
+          className="rounded-full font-black border-2 border-black shadow-[3px_3px_0_0_#000] bg-primary text-black hover:bg-primary/90"
+        >
+          Try Again
+        </Button>
       </div>
     );
   }
@@ -147,15 +152,20 @@ function ProductList({ price }: ProductListProps) {
 
         {hasMore && !loading && (
           <div className="text-center mt-8">
-            <Button onClick={loadMore} variant="outline" size="sm">
+            <Button
+              onClick={loadMore}
+              variant="outline"
+              size="sm"
+              className="rounded-full font-black border-2 border-black shadow-[2px_2px_0_0_#000] hover:bg-primary hover:-translate-y-0.5 transition-all"
+            >
               Load More Products ({vehicles.length} of 500+)
             </Button>
           </div>
         )}
 
         {!hasMore && vehicles.length > 0 && (
-          <div className="text-center py-6 border-t mt-6">
-            <p className="text-muted-foreground text-sm">
+          <div className="text-center py-6 border-t-2 border-black/10 mt-6">
+            <p className="text-sm font-bold text-black/60">
               🎉 All {vehicles.length} products loaded!
             </p>
           </div>

@@ -7,6 +7,15 @@ import { site } from "@/lib/site-config";
 import Brand from "../brand/brand";
 import { usePathname } from "next/navigation";
 
+// Define marquee items as a configurable list
+const marqueeItems = [
+  "CASH ON DELIVERY AVAILABLE",
+  "ALL INDIA DELIVERY",
+  "KERALA BASED",
+  "EASY RETURNS",
+  "AUTHENTIC PRODUCTS",
+];
+
 const Header = () => {
   const pathname = usePathname();
 
@@ -26,12 +35,16 @@ const Header = () => {
         <div className="w-full h-7 bg-black overflow-hidden flex items-center border-b-2 border-primary">
           <div
             className="flex whitespace-nowrap text-[11px] font-black tracking-widest text-primary uppercase"
-            style={{ animation: "marquee-scroll 18s linear infinite" }}
+            style={{ animation: "marquee-scroll 30s linear infinite" }}
           >
-            {Array.from({ length: 8 }).map((_, i) => (
-              <span key={i} className="flex items-center mx-4">
-                Step Into Style <span className="mx-4 text-white">//</span>
-              </span>
+            {/* Map through items and duplicate for seamless looping */}
+            {Array.from({ length: 3 }).map((_, setIndex) => (
+              marqueeItems.map((item, itemIndex) => (
+                <span key={`${setIndex}-${itemIndex}`} className="flex items-center mx-4">
+                  {item}
+                  <span className="mx-4 text-white">//</span>
+                </span>
+              ))
             ))}
           </div>
         </div>
@@ -81,17 +94,10 @@ const Header = () => {
               >
                 <IconBrandWhatsapp className="w-4 h-4" />
               </Link>
-
-              {/* <button
-                aria-label="Menu"
-                className="w-9 h-9 rounded-full bg-white text-black border-2 border-black flex items-center justify-center shadow-[2px_2px_0_0_#000] sm:hidden"
-              >
-                <IconMenu2 className="w-4 h-4" />
-              </button> */}
             </div>
           </div>
 
-          {/* bottom zig-zag edge, echoes shoe speed-lines */}
+          {/* bottom zig-zag edge */}
           <div
             className="absolute -bottom-2 left-0 w-full h-2 bg-primary"
             style={{

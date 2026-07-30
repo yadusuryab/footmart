@@ -31,12 +31,12 @@ export default function ProductCard2({
   const [imageError, setImageError] = useState(false);
 
   const cardContent = (
-    <div 
+    <div
       onClick={onClick}
-      className={`rounded-2xl overflow-hidden cursor-pointer ${className}`}
+      className={`rounded-2xl overflow-hidden cursor-pointer border-4 border-black shadow-[3px_3px_0_0_#000] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_#000] ${className}`}
     >
       {/* ✅ OPTIMIZED Image with Next.js Image component */}
-      <div className="aspect-square relative bg-gray-100 rounded-2xl overflow-hidden">
+      <div className="aspect-square relative bg-primary/10 overflow-hidden">
         {!imageError ? (
           <>
             <Image
@@ -59,22 +59,22 @@ export default function ProductCard2({
               placeholder="blur" // ✅ Add blur placeholder
               blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R" // ✅ Small base64 placeholder
             />
-            
+
             {/* ✅ Skeleton loader while image loads */}
             {!imageLoaded && (
-              <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                <div className="w-6 h-6 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+              <div className="absolute inset-0 bg-primary/20 animate-pulse flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-black/40 border-t-black rounded-full animate-spin" />
               </div>
             )}
           </>
         ) : (
           // ✅ Fallback for image error
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-            <span className="text-gray-400 text-sm">Image not available</span>
+          <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+            <span className="text-black/40 text-sm font-bold">Image not available</span>
           </div>
         )}
       </div>
-      
+
       {/* ✅ Optional: Add product info if needed */}
       {/* <div className="p-3">
         <h3 className="font-medium text-sm line-clamp-2">{productName}</h3>
