@@ -27,7 +27,8 @@ export async function generateMetadata({ params }: ProductProps): Promise<Metada
     };
   }
 
-  const { productName, price } = product;
+  const {  price } = product;
+  const productName =  "Footmart Sneakers";
   const ogDescription = `${productName} - ₹${price.toLocaleString()}. Buy now!`;
 
   return {
@@ -50,7 +51,7 @@ export default async function ProductPage({ params }: ProductProps) {
 
   // Destructure only what we need
   const { 
-    productName, 
+   
     shoeBrand, 
     category, 
     sizes, 
@@ -63,6 +64,7 @@ export default async function ProductPage({ params }: ProductProps) {
     offerPrice, 
     buyOneGetOne 
   } = product;
+  const productName =  "Footmart Sneakers";
 
   // Optimized WhatsApp message - minimal content
   const message = `Hi, I want ${productName} (${category}). Size? ${process.env.NEXT_PUBLIC_BASE_URL}/p/${resolvedParams.id}`;
