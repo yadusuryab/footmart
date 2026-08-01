@@ -79,10 +79,10 @@ export default function CheckoutPage() {
     try {
       const productMessages = cartItems.map((item, idx) => {
         const extra = Math.max(0, (item.price || BASE_PRICE) - BASE_PRICE);
-        let msg = `*PAIR ${idx + 1}*\nProduct: ${ "Footmart"}\nSize: ${item.selectedSize || "N/A"}\\nLink: https://kicksnot.in/p/${item._id}`;
+        let msg = `*PAIR ${idx + 1}*\nProduct: ${ "Footmart"}\nSize: ${item.selectedSize || "N/A"}\\nLink: https://shopfootmart.in/p/${item._id}`;
         if (item.buyOneGetOne && item.freeProduct) {
           const fExtra = Math.max(0, (item.freeProduct.price || BASE_PRICE) - BASE_PRICE);
-          msg += `\n\n*PAIR ${idx + 2}*\nProduct: ${ "Footmart"}\nSize: ${item.freeProduct.selectedSize || "N/A"}\nLink: https://kicksnot.in/p/${item.freeProduct._id}`;
+          msg += `\n\n*PAIR ${idx + 2}*\nProduct: ${ "Footmart"}\nSize: ${item.freeProduct.selectedSize || "N/A"}\nLink: https://shopfootmart.in/p/${item.freeProduct._id}`;
         }
         return msg;
       }).join("\n\n");

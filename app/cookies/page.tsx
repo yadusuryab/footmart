@@ -29,7 +29,7 @@ export default function CookiesPolicy() {
           </li>
           <li>
             <strong>Website:</strong> Refers to footmart, accessible from
-            <a href="https://kicksnot.in" target="_blank" rel="noopener noreferrer" className="text-blue-500"> kicksnot.in</a>.
+            <a href="https://shopfootmart.in" target="_blank" rel="noopener noreferrer" className="text-blue-500"> shopfootmart.in</a>.
           </li>
           <li>
             <strong>You:</strong> The individual or legal entity accessing or using the Website.
@@ -71,12 +71,12 @@ export default function CookiesPolicy() {
         <p>
           If you have any questions about this Cookies Policy, contact us at:
           <a
-            href="https://kicksnot.in/contact"
+            href="https://shopfootmart.in/contact"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500"
           >
-            kicksnot.in/contact
+            shopfootmart.in/contact
           </a>
           .
         </p>
