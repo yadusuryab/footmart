@@ -263,7 +263,14 @@ export default function CheckoutPage() {
             </CardContent>
           </Card>
         )}
-
+{shippingMethod === "cod" && (
+  <div className="flex items-start gap-2 rounded-xl border border-black/15 bg-primary/10 px-3 py-2.5 mt-2">
+    <Truck className="h-4 w-4 mt-0.5 shrink-0 text-black/70" />
+    <p className="text-xs text-black/70 leading-relaxed">
+      ₹{COD_CHARGE} is collected as an advance payment for COD orders. 
+    </p>
+  </div>
+)}
         <Card className="mt-6 border-2 border-black rounded-2xl">
           <CardContent className="pt-6">
             <div className="space-y-3">
