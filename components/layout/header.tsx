@@ -27,7 +27,7 @@ const Header = () => {
       `}</style>
 
       <header className="fixed top-0 left-0 w-full z-50">
-        <div className="w-full h-7 bg-black overflow-hidden flex items-center border-b-2 border-primary">
+        <div className="w-full h-7 bg-black overflow-hidden flex items-center">
           <div
             className="flex whitespace-nowrap text-[11px] font-black tracking-widest text-primary uppercase"
             style={{ animation: "marquee-scroll 30s linear infinite" }}
@@ -43,26 +43,29 @@ const Header = () => {
           </div>
         </div>
 
-        <div className="bg-primary border-b-2 border-black">
-          <div className="flex items-center justify-between px-4 sm:px-6 h-16 max-w-6xl mx-auto">
-            <Link href="/" className="flex items-center gap-2 shrink-0" aria-label="Footmart Home">
+        <div className="px-3 sm:px-6 pt-3 max-w-6xl mx-auto">
+          <div className="relative flex items-center justify-between px-4 sm:px-6 h-16 rounded-2xl border border-white/40 bg-primary/60 backdrop-blur-xl backdrop-saturate-150 shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+            {/* glass highlight sheen */}
+            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/30 via-white/5 to-transparent" />
+
+            <Link href="/" className="relative flex items-center gap-2 shrink-0" aria-label="Footmart Home">
               <Suspense fallback={<div className="w-10 h-10 rounded-full bg-black/10 animate-pulse" />}>
-                <div className="bg-black rounded-full p-1 border-2 border-white">
+                <div className="bg-black/90 rounded-full p-1 border border-white/60">
                   <Brand small />
                 </div>
               </Suspense>
-              <span className="hidden sm:inline font-black text-xl italic text-white">
+              <span className="hidden sm:inline font-black text-xl italic text-white drop-shadow-sm">
                 Foot<span className="text-black">mart.</span>
               </span>
             </Link>
 
-            <div className="flex items-center gap-3">
+            <div className="relative flex items-center gap-3">
               <Link
                 href={`https://instagram.com/${site.instagram}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center hover:opacity-80 transition-opacity"
+                className="w-9 h-9 rounded-full bg-black/80 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black transition-colors"
               >
                 <IconBrandInstagram className="w-4 h-4" />
               </Link>
@@ -71,7 +74,7 @@ const Header = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
-                className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center hover:opacity-80 transition-opacity"
+                className="w-9 h-9 rounded-full bg-black/80 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black transition-colors"
               >
                 <IconBrandWhatsapp className="w-4 h-4" />
               </Link>
@@ -80,7 +83,7 @@ const Header = () => {
         </div>
       </header>
 
-      <div className="h-23" />
+      <div className="h-28" />
     </>
   );
 };
