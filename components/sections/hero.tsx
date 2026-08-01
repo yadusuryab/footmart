@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { IconArrowUpRight } from "@tabler/icons-react";
+import { Button } from "../ui/button";
 
 export function Hero() {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -41,20 +42,13 @@ export function Hero() {
             </div>
           </div>
 
-          <div className="bg-primary border-t-2 border-black px-4 py-3 flex items-center justify-between gap-3">
-            <div className="flex flex-col min-w-0">
-              <span className="text-black/60 text-[10px] font-black uppercase tracking-widest leading-none mb-1">
-                Buy One Get One Free
-              </span>
-              <span className="text-black font-black italic text-lg leading-tight">
-                Buy at ₹1499
-              </span>
-            </div>
+          <div className="bg-primary text-center font-bold border-t-2 border-black px-4 py-3 flex items-center justify-center gap-3">
+          
 
-            <button className="flex-shrink-0 flex items-center gap-1 bg-black text-white text-sm font-black px-4 py-2.5 rounded-full transition-transform duration-200 group-hover:scale-105 active:scale-95 whitespace-nowrap">
-              Claim
+            <Button variant="ghost" className="font-bold text-md">
+                Buy now
               <IconArrowUpRight className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
       </Link>

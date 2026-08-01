@@ -79,10 +79,10 @@ export default function CheckoutPage() {
     try {
       const productMessages = cartItems.map((item, idx) => {
         const extra = Math.max(0, (item.price || BASE_PRICE) - BASE_PRICE);
-        let msg = `*PAIR ${idx + 1}*\nProduct: ${item.productName?.toUpperCase() || "Unknown"}\nSize: ${item.selectedSize || "N/A"}\nExtra: ₹${extra}\nLink: https://kicksnot.in/p/${item._id}`;
+        let msg = `*PAIR ${idx + 1}*\nProduct: ${ "Footmart"}\nSize: ${item.selectedSize || "N/A"}\\nLink: https://kicksnot.in/p/${item._id}`;
         if (item.buyOneGetOne && item.freeProduct) {
           const fExtra = Math.max(0, (item.freeProduct.price || BASE_PRICE) - BASE_PRICE);
-          msg += `\n\n*PAIR ${idx + 2}*\nProduct: ${item.freeProduct.productName?.toUpperCase() || "Unknown"}\nSize: ${item.freeProduct.selectedSize || "N/A"}\nExtra: ₹${fExtra}\nLink: https://kicksnot.in/p/${item.freeProduct._id}`;
+          msg += `\n\n*PAIR ${idx + 2}*\nProduct: ${ "Footmart"}\nSize: ${item.freeProduct.selectedSize || "N/A"}\nLink: https://kicksnot.in/p/${item.freeProduct._id}`;
         }
         return msg;
       }).join("\n\n");
@@ -152,7 +152,12 @@ export default function CheckoutPage() {
     <main className="container mx-auto px-4 max-w-2xl min-h-screen pb-24">
       <div className="py-4">
         <StepProgress />
-
+<div className="flex items-center gap-2 rounded-xl border border-black bg-primary/20 px-3 py-2.5 mb-4">
+  <Zap className="h-4 w-4 shrink-0 text-black" />
+  <p className="text-xs font-bold text-black">
+    🔥 FREE Flame Socks included with your order!
+  </p>
+</div>
         {formErrors.length > 0 && (
           <Alert variant="destructive" className="mb-4 border border-black rounded-xl">
             <AlertDescription>
