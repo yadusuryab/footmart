@@ -19,7 +19,7 @@ export function ShopVideo() {
       <div className="relative w-full max-w-[340px] aspect-[9/16] rounded-[2rem] overflow-hidden bg-black border-4 border-black shadow-[6px_6px_0_0_theme(colors.primary.DEFAULT)]">
         <video
           ref={videoRef}
-          src="/video.mp4"
+          src="/packing.mp4"
           autoPlay
           loop
           muted={muted}

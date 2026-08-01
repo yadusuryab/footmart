@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ShoppingBag, CheckCircle2, Zap, Truck, ArrowRight, Gift, Star, Shield } from "lucide-react";
+import { Loader2, ShoppingBag, CheckCircle2, Zap, Truck, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { CustomerDetailsForm } from "@/components/checkout/checkout-form";
 import { Button } from "@/components/ui/button";
@@ -75,7 +75,6 @@ export default function CheckoutPage() {
   };
 
   const handleWhatsAppOrder = () => {
-
     setIsLoading(true);
     try {
       const productMessages = cartItems.map((item, idx) => {
@@ -102,7 +101,7 @@ export default function CheckoutPage() {
   };
 
   const ProductImage = ({ product, alt, borderClass }: { product: any; alt: string; borderClass: string }) => (
-    <div className={`aspect-square bg-primary/10 rounded-2xl overflow-hidden border-4 ${borderClass} shadow-[3px_3px_0_0_#000]`}>
+    <div className={`aspect-square bg-primary/10 rounded-xl overflow-hidden border-2 ${borderClass}`}>
       <Image src={getProductImageUrl(product)} alt={alt} width={200} height={200} quality={50}
         className="w-full h-full object-cover" loading="eager" />
     </div>
@@ -118,12 +117,12 @@ export default function CheckoutPage() {
         return (
           <React.Fragment key={step}>
             <div className="flex flex-col items-center">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black border-2 border-black shadow-[2px_2px_0_0_#000] transition-colors ${isActive ? "bg-primary text-black" : isDone ? "bg-black text-primary" : "bg-white text-black/40"}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black border border-black transition-colors ${isActive ? "bg-primary text-black" : isDone ? "bg-black text-primary" : "bg-white text-black/40"}`}>
                 {isDone ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
               </div>
               <span className="text-xs mt-1 font-bold uppercase tracking-wide">{labels[i]}</span>
             </div>
-            {i < 1 && <div className={`w-12 h-1.5 mx-2 rounded-full transition-colors ${isDone || isActive ? "bg-primary" : "bg-black/10"}`} />}
+            {i < 1 && <div className={`w-12 h-1 mx-2 rounded-full transition-colors ${isDone || isActive ? "bg-primary" : "bg-black/10"}`} />}
           </React.Fragment>
         );
       })}
@@ -133,14 +132,14 @@ export default function CheckoutPage() {
   if (!cartItems.length || !mainProduct) {
     return (
       <main className="container mx-auto px-4 max-w-md min-h-screen flex items-center justify-center">
-        <Card className="w-full text-center border-4 border-black rounded-3xl shadow-[6px_6px_0_0_#000]">
+        <Card className="w-full text-center border-2 border-black rounded-2xl">
           <CardContent className="pt-6">
-            <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 border-2 border-black">
+            <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 border border-black">
               <ShoppingBag className="h-8 w-8 text-black" />
             </div>
             <h2 className="text-xl font-black mb-2">{!cartItems.length ? "Your cart is empty" : "Invalid Cart"}</h2>
             <p className="text-muted-foreground mb-6">{!cartItems.length ? "Add some stylish shoes to get started!" : "Your cart contains invalid items."}</p>
-            <Button onClick={() => { localStorage.removeItem("cart"); router.push("/"); }} className="w-full rounded-full font-black border-2 border-black shadow-[3px_3px_0_0_#000] bg-primary text-black hover:bg-primary/90">
+            <Button onClick={() => { localStorage.removeItem("cart"); router.push("/"); }} className="w-full rounded-full font-black border border-black bg-primary text-black hover:bg-primary/90">
               {!cartItems.length ? "Continue Shopping" : "Start Over"}
             </Button>
           </CardContent>
@@ -155,7 +154,7 @@ export default function CheckoutPage() {
         <StepProgress />
 
         {formErrors.length > 0 && (
-          <Alert variant="destructive" className="mb-4 border-2 border-black rounded-2xl">
+          <Alert variant="destructive" className="mb-4 border border-black rounded-xl">
             <AlertDescription>
               <ul className="list-disc list-inside space-y-1">{formErrors.map((e, i) => <li key={i}>{e}</li>)}</ul>
             </AlertDescription>
@@ -163,31 +162,28 @@ export default function CheckoutPage() {
         )}
 
         {currentStep === "payment" ? (
-          <Card className="border-4 border-black rounded-3xl shadow-[6px_6px_0_0_#000]">
+          <Card className="border-2 border-black rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center text-lg gap-2 font-black italic">
+              <CardTitle className="flex items-center text-lg gap-2 font-black">
                 <CheckCircle2 className="h-5 w-5 text-primary" />
                 Select Payment Method
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Product Pairs */}
               <div className="mb-6">
-                <Label className="text-sm font-black uppercase tracking-wide mb-3 block">Your Selected Pairs 🔥</Label>
+                <Label className="text-sm font-black uppercase tracking-wide mb-3 block">Your Selected Pairs</Label>
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <ProductImage product={mainProduct} alt={mainProduct.productName || "Main Product"} borderClass="border-black" />
                     <div className="mt-2 text-center">
                       <p className="text-sm font-bold">{mainProduct.productName || "Product"}</p>
                       <p className="text-xs text-muted-foreground">Size: {mainProduct.selectedSize || "N/A"}</p>
-                      <Badge className="mt-1 bg-black text-primary border border-white font-black rounded-full">1st Pair</Badge>
+                      <Badge className="mt-1 bg-black text-primary font-black rounded-full">1st Pair</Badge>
                     </div>
                   </div>
                   {freeProduct && (
                     <div className="flex-1">
-                      <div className="relative">
-                        <ProductImage product={freeProduct} alt={freeProduct.productName || "Free Product"} borderClass="border-primary" />
-                      </div>
+                      <ProductImage product={freeProduct} alt={freeProduct.productName || "Free Product"} borderClass="border-primary" />
                       <div className="mt-2 text-center">
                         <p className="text-sm font-bold">{freeProduct.productName || "Free Product"}</p>
                         <p className="text-xs text-muted-foreground">Size: {freeProduct.selectedSize || "N/A"}</p>
@@ -198,30 +194,22 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Payment Options */}
               <RadioGroup
                 value={shippingMethod}
                 onValueChange={(v: "online" | "cod") => setShippingMethod(v)}
                 className="space-y-3"
               >
-                {/* Online Payment */}
                 <div
-                  className={`flex items-start gap-3 rounded-2xl border-2 p-4 cursor-pointer transition-all ${
-                    shippingMethod === "online"
-                      ? "border-black bg-primary shadow-[3px_3px_0_0_#000]"
-                      : "border-black/20 hover:border-black/50"
+                  className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-all ${
+                    shippingMethod === "online" ? "border-black bg-primary" : "border-black/20 hover:border-black/50"
                   }`}
                   onClick={() => setShippingMethod("online")}
                 >
                   <RadioGroupItem value="online" id="online" className="mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <Label htmlFor="online" className="font-black cursor-pointer">
-                        Online Payment
-                      </Label>
-                      <Badge className="bg-black text-primary text-xs px-2 py-0.5 rounded-full font-bold">
-                        Free shipping
-                      </Badge>
+                      <Label htmlFor="online" className="font-black cursor-pointer">Online Payment</Label>
+                      <Badge className="bg-black text-primary text-xs px-2 py-0.5 rounded-full font-bold">Free shipping</Badge>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 mt-2">
                       <span className="flex items-center gap-1 text-xs font-bold">
@@ -234,24 +222,17 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* COD */}
                 <div
-                  className={`flex items-start gap-3 rounded-2xl border-2 p-4 cursor-pointer transition-all ${
-                    shippingMethod === "cod"
-                      ? "border-black bg-primary shadow-[3px_3px_0_0_#000]"
-                      : "border-black/20 hover:border-black/50"
+                  className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-all ${
+                    shippingMethod === "cod" ? "border-black bg-primary" : "border-black/20 hover:border-black/50"
                   }`}
                   onClick={() => setShippingMethod("cod")}
                 >
                   <RadioGroupItem value="cod" id="cod" className="mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <Label htmlFor="cod" className="font-black cursor-pointer">
-                        Cash on Delivery
-                      </Label>
-                      <Badge className="text-black border border-black bg-primary/30 text-xs px-2 py-0.5 rounded-full font-bold">
-                        +₹{COD_CHARGE} extra
-                      </Badge>
+                      <Label htmlFor="cod" className="font-black cursor-pointer">Cash on Delivery</Label>
+                      <Badge className="text-black border border-black bg-primary/30 text-xs px-2 py-0.5 rounded-full font-bold">+₹{COD_CHARGE} extra</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1.5">
                       Pay when you receive · Choose online to save ₹{COD_CHARGE}
@@ -262,7 +243,7 @@ export default function CheckoutPage() {
 
               <Button
                 onClick={() => setCurrentStep("details")}
-                className="w-full h-12 text-lg font-black mt-6 flex items-center gap-2 rounded-full border-2 border-black shadow-[3px_3px_0_0_#000] bg-primary text-black hover:bg-primary/90"
+                className="w-full h-12 text-lg font-black mt-6 flex items-center gap-2 rounded-full border border-black bg-primary text-black hover:bg-primary/90"
                 size="lg"
               >
                 Continue to Details <ArrowRight className="h-4 w-4" />
@@ -270,9 +251,9 @@ export default function CheckoutPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-4 border-black rounded-3xl shadow-[6px_6px_0_0_#000]">
+          <Card className="border-2 border-black rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-black italic">
+              <CardTitle className="flex items-center gap-2 font-black">
                 <CheckCircle2 className="h-5 w-5 text-primary" /> Delivery Information
               </CardTitle>
               <CardDescription>Enter your details for order delivery</CardDescription>
@@ -283,8 +264,7 @@ export default function CheckoutPage() {
           </Card>
         )}
 
-        {/* Order Summary */}
-        <Card className="mt-6 border-4 border-black rounded-3xl shadow-[6px_6px_0_0_#000]">
+        <Card className="mt-6 border-2 border-black rounded-2xl">
           <CardContent className="pt-6">
             <div className="space-y-3">
               <div className="flex justify-between text-sm font-medium"><span>Base Price (2 Pairs)</span><span>₹{BASE_PRICE}</span></div>
@@ -293,16 +273,16 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-sm font-medium">
                 <span>Shipping</span>
                 {shippingMethod === "online"
-                  ? <span className="text-black font-black bg-primary px-2 py-0.5 rounded-full border border-black">🎁 FREE SHIPPING</span>
+                  ? <span className="text-black font-black bg-primary px-2 py-0.5 rounded-full border border-black">FREE SHIPPING</span>
                   : <span>₹{COD_CHARGE}</span>}
               </div>
-              <div className="border-t-2 border-black/10 pt-3 flex justify-between font-black text-lg italic">
+              <div className="border-t border-black/10 pt-3 flex justify-between font-black text-lg">
                 <span>Total Amount</span><span>₹{totalAmount}</span>
               </div>
               {shippingMethod === "cod" && (
-                <p className="text-xs text-center font-bold">💡 Switch to Online Payment to save ₹{COD_CHARGE}!</p>
+                <p className="text-xs text-center font-bold">Switch to Online Payment to save ₹{COD_CHARGE}</p>
               )}
-              <div className="border-t-2 border-black/10 pt-3 text-xs text-muted-foreground">
+              <div className="border-t border-black/10 pt-3 text-xs text-muted-foreground">
                 By placing this order, you agree to the <Link href="/T&C" className="text-black font-bold underline">Terms and Conditions</Link>
               </div>
             </div>
@@ -310,14 +290,13 @@ export default function CheckoutPage() {
         </Card>
       </div>
 
-      {/* Fixed Bottom CTA */}
       {currentStep === "details" && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-black p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-black p-4">
           <div className="container mx-auto px-4 max-w-2xl">
             <Button
               onClick={handleWhatsAppOrder}
               disabled={isLoading}
-              className="w-full h-12 text-lg font-black flex items-center gap-2 rounded-full border-2 border-black shadow-[3px_3px_0_0_#000] bg-primary text-black hover:bg-primary/90"
+              className="w-full h-12 text-lg font-black flex items-center gap-2 rounded-full border border-black bg-primary text-black hover:bg-primary/90"
               size="lg"
             >
               {isLoading ? <><Loader2 className="h-5 w-5 animate-spin" /> Preparing Order...</> : `Order via WhatsApp – ₹${totalAmount}`}
