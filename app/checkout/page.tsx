@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ShoppingBag, CheckCircle2, Zap, Truck, ArrowRight, SprayCan, Star } from "lucide-react";
+import { Loader2, ShoppingBag, CheckCircle2, Zap, Truck, ArrowRight, SprayCan, Star, Gift } from "lucide-react";
 import Image from "next/image";
 import { CustomerDetailsForm } from "@/components/checkout/checkout-form";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ const getProductImageUrl = (product: any): string => {
 };
 
 const BASE_PRICE = 1499;
+const ONLINE_SHIPPING = 100;
 const COD_CHARGE = 300;
 const SHOE_CLEANER_PRICE = 80;
 
@@ -100,10 +101,13 @@ export default function CheckoutPage() {
 
   const mainProduct = cartItems[0];
   const freeProduct = mainProduct?.freeProduct;
+  // Every order gets a free pair — either the cart's own BOGO freeProduct, or a
+  // randomly picked pair decided at fulfillment time (no product to show yet).
+  const hasRandomFreePair = !freeProduct;
   const pair1Extra = Math.max(0, (mainProduct?.price || BASE_PRICE) - BASE_PRICE);
   const pair2Extra = Math.max(0, (freeProduct?.price || BASE_PRICE) - BASE_PRICE);
   const subtotal = BASE_PRICE + pair1Extra + pair2Extra;
-  const shippingCharge = shippingMethod === "online" ? 0 : COD_CHARGE;
+  const shippingCharge = shippingMethod === "online" ? ONLINE_SHIPPING : COD_CHARGE;
   const cleanerCharge = settings.shoeCleanerAddon && addShoeCleaner ? SHOE_CLEANER_PRICE : 0;
   const totalAmount = subtotal + shippingCharge + cleanerCharge;
 
@@ -126,7 +130,11 @@ export default function CheckoutPage() {
         return msg;
       }).join("\n\n");
 
-      const msg = `*2 PAIR SHOES ORDER*\n\n${productMessages}\n\n*CUSTOMER DETAILS*\nName: ${customerDetails.name}\nInstagram: ${customerDetails.instagramId}\nAddress: ${customerDetails.address}\nDistrict: ${customerDetails.district}\nState: ${customerDetails.state}\nPincode: ${customerDetails.pincode}\nLandmark: ${customerDetails.landmark || "N/A"}\nContact No.1: ${customerDetails.contact1}\nContact No.2: ${customerDetails.contact2 || "N/A"}\n\n*ORDER SUMMARY*\nBase Price: ₹${BASE_PRICE}\nPair 1 Extra: ₹${pair1Extra}\nPair 2 Extra: ₹${pair2Extra}\n${cleanerCharge > 0 ? `Add-on: Shoe Cleaner (+₹${SHOE_CLEANER_PRICE})\n` : ""}Shipping: ${shippingMethod === "online" ? "FREE (Online Payment)" : `₹${COD_CHARGE} (Cash on Delivery)`}\n*GRAND TOTAL: ₹${totalAmount}*`.trim();
+      const freePairLine = hasRandomFreePair
+        ? `\n\n*PAIR 2 (FREE)*\n🎁 Random Surprise Pair — picked by us at packing`
+        : "";
+
+      const msg = `*2 PAIR SHOES ORDER*\n\n${productMessages}${freePairLine}\n\n*CUSTOMER DETAILS*\nName: ${customerDetails.name}\nInstagram: ${customerDetails.instagramId}\nAddress: ${customerDetails.address}\nDistrict: ${customerDetails.district}\nState: ${customerDetails.state}\nPincode: ${customerDetails.pincode}\nLandmark: ${customerDetails.landmark || "N/A"}\nContact No.1: ${customerDetails.contact1}\nContact No.2: ${customerDetails.contact2 || "N/A"}\n\n*ORDER SUMMARY*\nBase Price: ₹${BASE_PRICE}\nPair 1 Extra: ₹${pair1Extra}\nPair 2 Extra: ₹${pair2Extra}\n${hasRandomFreePair ? "🎁 FREE Random Pair Included\n" : ""}${cleanerCharge > 0 ? `Add-on: Shoe Cleaner (+₹${SHOE_CLEANER_PRICE})\n` : ""}Shipping: ${shippingMethod === "online" ? `₹${ONLINE_SHIPPING} (Online Payment)` : `₹${COD_CHARGE} (Cash on Delivery)`}\n*GRAND TOTAL: ₹${totalAmount}*`.trim();
 
       setTimeout(() => {
         window.open(`https://wa.me/${site.phone}?text=${encodeURIComponent(msg)}`, "_blank");
@@ -143,6 +151,15 @@ export default function CheckoutPage() {
     <div className={`aspect-square bg-primary/10 rounded-xl overflow-hidden border-2 ${borderClass}`}>
       <Image src={getProductImageUrl(product)} alt={alt} width={200} height={200} quality={50}
         className="w-full h-full object-cover" loading="eager" />
+    </div>
+  );
+
+  // Placeholder card shown in place of a real product image when the 2nd
+  // pair is a random surprise rather than a chosen freeProduct.
+  const RandomPairCard = () => (
+    <div className="aspect-square bg-primary/10 rounded-xl overflow-hidden border-2 border-dashed border-primary flex flex-col items-center justify-center gap-1.5 text-center px-2">
+      <Gift className="h-7 w-7 text-black" />
+      <span className="text-[11px] font-black leading-tight">Surprise Pair</span>
     </div>
   );
 
@@ -192,6 +209,14 @@ export default function CheckoutPage() {
       <div className="py-4">
         <StepProgress />
 
+        {/* Always-on: every order ships with a free 2nd pair, random or chosen */}
+        <div className="flex items-center gap-2 rounded-xl border border-black bg-primary/20 px-3 py-2.5 mb-4">
+          <Gift className="h-4 w-4 shrink-0 text-black" />
+          <p className="text-xs font-bold text-black">
+            🎁 Every order includes a FREE random surprise pair!
+          </p>
+        </div>
+
         {settings.freeSocksOffer && (
           <div className="flex items-center gap-2 rounded-xl border border-black bg-primary/20 px-3 py-2.5 mb-4">
             <Zap className="h-4 w-4 shrink-0 text-black" />
@@ -229,16 +254,24 @@ export default function CheckoutPage() {
                       <Badge className="mt-1 bg-black text-primary font-black rounded-full">1st Pair</Badge>
                     </div>
                   </div>
-                  {freeProduct && (
-                    <div className="flex-1">
+                  <div className="flex-1">
+                    {freeProduct ? (
                       <ProductImage product={freeProduct} alt={freeProduct.productName || "Free Product"} borderClass="border-primary" />
-                      <div className="mt-2 text-center">
-                        <p className="text-sm font-bold">{freeProduct.productName || "Free Product"}</p>
-                        <p className="text-xs text-muted-foreground">Size: {freeProduct.selectedSize || "N/A"}</p>
-                        <Badge className="mt-1 bg-primary text-black border border-black font-black rounded-full">2nd Pair Free</Badge>
-                      </div>
+                    ) : (
+                      <RandomPairCard />
+                    )}
+                    <div className="mt-2 text-center">
+                      <p className="text-sm font-bold">
+                        {freeProduct ? (freeProduct.productName || "Free Product") : "Random Surprise"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {freeProduct ? `Size: ${freeProduct.selectedSize || "N/A"}` : "Picked for you at packing"}
+                      </p>
+                      <Badge className="mt-1 bg-primary text-black border border-black font-black rounded-full">
+                        {freeProduct ? "2nd Pair Free" : "2nd Pair Free 🎁"}
+                      </Badge>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
@@ -257,11 +290,11 @@ export default function CheckoutPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <Label htmlFor="online" className="font-black cursor-pointer">Online Payment</Label>
-                      <Badge className="bg-black text-primary text-xs px-2 py-0.5 rounded-full font-bold">Free shipping</Badge>
+                      <Badge className="bg-black text-primary text-xs px-2 py-0.5 rounded-full font-bold">+₹{ONLINE_SHIPPING} shipping</Badge>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 mt-2">
                       <span className="flex items-center gap-1 text-xs font-bold">
-                        <Zap className="h-3 w-3" /> Save ₹{COD_CHARGE} instantly
+                        <Zap className="h-3 w-3" /> Save ₹{COD_CHARGE - ONLINE_SHIPPING} vs COD
                       </span>
                       <span className="flex items-center gap-1 text-xs font-medium">
                         <Truck className="h-3 w-3" /> Fast delivery (5–8 days)
@@ -283,7 +316,7 @@ export default function CheckoutPage() {
                       <Badge className="text-black border border-black bg-primary/30 text-xs px-2 py-0.5 rounded-full font-bold">+₹{COD_CHARGE} extra</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1.5">
-                      Pay when you receive · Choose online to save ₹{COD_CHARGE}
+                      Pay when you receive · Choose online to save ₹{COD_CHARGE - ONLINE_SHIPPING}
                     </p>
                   </div>
                 </div>
@@ -369,6 +402,12 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-sm font-medium"><span>Base Price (2 Pairs)</span><span>₹{BASE_PRICE}</span></div>
               {pair1Extra > 0 && <div className="flex justify-between text-sm text-muted-foreground ml-4"><span>Extra – Pair 1</span><span>+₹{pair1Extra}</span></div>}
               {pair2Extra > 0 && <div className="flex justify-between text-sm text-muted-foreground ml-4"><span>Extra – Pair 2</span><span>+₹{pair2Extra}</span></div>}
+              {hasRandomFreePair && (
+                <div className="flex justify-between text-sm font-medium ml-4 text-muted-foreground">
+                  <span className="flex items-center gap-1"><Gift className="h-3.5 w-3.5" /> Random Surprise Pair</span>
+                  <span>FREE</span>
+                </div>
+              )}
               {cleanerCharge > 0 && (
                 <div className="flex justify-between text-sm font-medium">
                   <span className="flex items-center gap-1"><SprayCan className="h-3.5 w-3.5" /> Shoe Cleaner</span>
@@ -377,15 +416,13 @@ export default function CheckoutPage() {
               )}
               <div className="flex justify-between text-sm font-medium">
                 <span>Shipping</span>
-                {shippingMethod === "online"
-                  ? <span className="text-black font-black bg-primary px-2 py-0.5 rounded-full border border-black">FREE SHIPPING</span>
-                  : <span>₹{COD_CHARGE}</span>}
+                <span>{shippingMethod === "online" ? `₹${ONLINE_SHIPPING}` : `₹${COD_CHARGE}`}</span>
               </div>
               <div className="border-t border-black/10 pt-3 flex justify-between font-black text-lg">
                 <span>Total Amount</span><span>₹{totalAmount}</span>
               </div>
               {shippingMethod === "cod" && (
-                <p className="text-xs text-center font-bold">Switch to Online Payment to save ₹{COD_CHARGE}</p>
+                <p className="text-xs text-center font-bold">Switch to Online Payment to save ₹{COD_CHARGE - ONLINE_SHIPPING}</p>
               )}
               <div className="border-t border-black/10 pt-3 text-xs text-muted-foreground">
                 By placing this order, you agree to the <Link href="/T&C" className="text-black font-bold underline">Terms and Conditions</Link>

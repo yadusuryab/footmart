@@ -22,7 +22,7 @@ function ProductList({ price }: ProductListProps) {
   const [offset, setOffset] = useState<number>(0);
   const [initialLoadDone, setInitialLoadDone] = useState<boolean>(false);
 
-  const { handleProductClick, renderBogoPage, renderSizeModal } = useAddToCart();
+  const { handleProductClick, renderBogoPage, renderSizeModal,renderSuccessAnimation } = useAddToCart();
 
   // ✅ Reduced initial load from 24 to 12, subsequent loads to 8
   const loadProducts = useCallback(async (loadOffset: number = 0, loadLimit: number = 12) => {
@@ -174,6 +174,7 @@ function ProductList({ price }: ProductListProps) {
 
       {renderBogoPage(bogoProducts)}
       {renderSizeModal(bogoProducts)}
+      {renderSuccessAnimation()}
     </div>
   );
 }
