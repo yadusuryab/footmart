@@ -1,6 +1,6 @@
 "use client";
 
-import Poster2 from "@/public/p33.png";
+import Poster2 from "@/public/poster22.png";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -34,8 +34,7 @@ export function Hero() {
               quality={60}
               sizes="(max-width: 640px) 95vw, (max-width: 1024px) 80vw, 600px"
               onLoad={() => setImageLoaded(true)}
-              placeholder="blur"
-            />
+                                      />
 
             <div className="absolute top-3 left-3 z-10 bg-black text-primary text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-white">
               Limited Drop
