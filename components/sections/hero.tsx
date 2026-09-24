@@ -24,7 +24,7 @@ export function Hero() {
 
             <Image
               src={Poster2}
-              alt="BOGO at ₹999!"
+              alt="BOGO at ₹1499!"
               width={800}
               height={800}
               className={`w-full h-auto block transition-opacity duration-500 ${
