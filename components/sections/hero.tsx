@@ -23,7 +23,7 @@ export function Hero() {
             )}
 
             <Image
-              src={'/p33.png'}
+              src={Poster2.src}
               alt="BOGO at ₹1499!"
               width={800}
               height={800}
