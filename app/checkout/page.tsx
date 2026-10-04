@@ -43,7 +43,7 @@ const getProductImageUrl = (product: any): string => {
 };
 
 const BASE_PRICE = 1499;
-const ONLINE_SHIPPING = 100;
+const ONLINE_SHIPPING = 150;
 const COD_CHARGE = 300;
 const SHOE_CLEANER_PRICE = 80;
 
