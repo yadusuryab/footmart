@@ -1,6 +1,6 @@
 "use client";
 
-import Poster2 from "@/public/poster22.png";
+import Poster2 from "@/public/poster22.jpeg";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
