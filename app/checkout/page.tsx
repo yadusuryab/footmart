@@ -18,6 +18,7 @@ interface CartItem {
   images?: Array<{ asset: { url: string } }>;
   buyOneGetOne?: boolean;
   freeProduct?: CartItem;
+  randomPairSize?: string | null; // picked in the add-to-cart flow
 }
 
 interface SiteSettings {
@@ -52,6 +53,7 @@ const SOCKS_PRICE = 99;
 const SETTINGS_QUERY = `*[_type == "settings"][0]{ freeSocksOffer, shoeCleanerAddon }`;
 
 const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+const ordinal = (n: number) => (n === 2 ? "2nd" : "3rd");
 
 /* ---------- Design tokens (same language as the header) ---------- */
 
@@ -96,7 +98,7 @@ const PillContent = ({ children }: { children: React.ReactNode }) => (
     <span className={`text-base ${DISPLAY}`}>{children}</span>
     <span
       aria-hidden
-      className="ml-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-black transition-transform duration-300 group-hover:translate-x-0.5 motion-reduce:transition-none"
+      className="ml-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-black transition-transform duration-300 group-enabled:group-hover:translate-x-0.5 motion-reduce:transition-none"
     >
       <ArrowIcon />
     </span>
@@ -143,11 +145,13 @@ const PairRow = ({
   label,
   free,
   random,
+  size,
 }: {
   product?: CartItem;
   label: string;
   free?: boolean;
   random?: boolean;
+  size?: string | null;
 }) => (
   <div className="flex items-center gap-3 rounded-2xl bg-muted p-2.5">
     {random ? (
@@ -177,7 +181,9 @@ const PairRow = ({
       </p>
       <p className="text-xs text-muted-foreground">
         {random
-          ? "Picked by us at packing"
+          ? size
+            ? `Size ${size}`
+            : ""
           : `Size ${product?.selectedSize || "N/A"}`}
       </p>
     </div>
@@ -434,9 +440,14 @@ export default function CheckoutPage() {
 
   const mainProduct = cartItems[0];
   const freeProduct = mainProduct?.freeProduct;
-  // Every order gets a free pair: either the cart's own BOGO freeProduct, or a
-  // randomly picked pair decided at fulfillment time (no product to show yet).
-  const hasRandomFreePair = !freeProduct;
+  // Every order includes a random free pair, whose style we pick at packing.
+  //   BOGO order  -> pair 1 chosen, pair 2 chosen (free), pair 3 random (free)
+  //   Other order -> pair 1 chosen, pair 2 random (free)
+  const randomPairNo = freeProduct ? 3 : 2;
+  const pairCount = randomPairNo;
+  // Picked in the add-to-cart flow; this page only displays it.
+  const randomPairSize = mainProduct?.randomPairSize || null;
+
   const pair1Extra = Math.max(
     0,
     (mainProduct?.price || BASE_PRICE) - BASE_PRICE,
@@ -493,12 +504,10 @@ export default function CheckoutPage() {
         })
         .join("\n\n");
 
-      const freePairLine = hasRandomFreePair
-        ? `\n\n*PAIR 2 (FREE)*\n🎁 Random Surprise Pair — picked by us at packing`
-        : "";
+      const freePairLine = `\n\n*PAIR ${randomPairNo} (FREE)*\n🎁 Random Surprise Pair\nSize: ${randomPairSize || "N/A"}\nStyle: picked by us at packing`;
 
       const msg =
-        `*2 PAIR SHOES ORDER*\n\n${productMessages}${freePairLine}\n\n*CUSTOMER DETAILS*\nName: ${customerDetails.name}\nInstagram: ${customerDetails.instagramId}\nAddress: ${customerDetails.address}\nDistrict: ${customerDetails.district}\nState: ${customerDetails.state}\nPincode: ${customerDetails.pincode}\nLandmark: ${customerDetails.landmark || "N/A"}\nContact No.1: ${customerDetails.contact1}\nContact No.2: ${customerDetails.contact2 || "N/A"}\n\n*ORDER SUMMARY*\nBase Price: ₹${BASE_PRICE}\nPair 1 Extra: ₹${pair1Extra}\nPair 2 Extra: ₹${pair2Extra}\n${hasRandomFreePair ? "🎁 FREE Random Pair Included\n" : ""}${cleanerCharge > 0 ? `Add-on: Shoe Cleaner (+₹${SHOE_CLEANER_PRICE})\n` : ""}${socksCharge > 0 ? `Add-on: Flame Socks (+₹${SOCKS_PRICE})\n` : ""}Shipping: ${shippingMethod === "online" ? `₹${ONLINE_SHIPPING} (Online Payment)` : `₹${COD_CHARGE} (Cash on Delivery)`}\n*GRAND TOTAL: ₹${totalAmount}*`.trim();
+        `*${pairCount} PAIR SHOES ORDER*\n\n${productMessages}${freePairLine}\n\n*CUSTOMER DETAILS*\nName: ${customerDetails.name}\nInstagram: ${customerDetails.instagramId}\nAddress: ${customerDetails.address}\nDistrict: ${customerDetails.district}\nState: ${customerDetails.state}\nPincode: ${customerDetails.pincode}\nLandmark: ${customerDetails.landmark || "N/A"}\nContact No.1: ${customerDetails.contact1}\nContact No.2: ${customerDetails.contact2 || "N/A"}\n\n*ORDER SUMMARY*\nBase Price: ₹${BASE_PRICE}\nPair 1 Extra: ₹${pair1Extra}\nPair 2 Extra: ₹${pair2Extra}\n🎁 FREE Random Pair Included (Pair ${randomPairNo}, Size ${randomPairSize || "N/A"})\n${cleanerCharge > 0 ? `Add-on: Shoe Cleaner (+₹${SHOE_CLEANER_PRICE})\n` : ""}${socksCharge > 0 ? `Add-on: Flame Socks (+₹${SOCKS_PRICE})\n` : ""}Shipping: ${shippingMethod === "online" ? `₹${ONLINE_SHIPPING} (Online Payment)` : `₹${COD_CHARGE} (Cash on Delivery)`}\n*GRAND TOTAL: ₹${totalAmount}*`.trim();
 
       const url = `https://wa.me/${site.phone}?text=${encodeURIComponent(msg)}`;
 
@@ -596,16 +605,20 @@ export default function CheckoutPage() {
         {currentStep === "payment" ? (
           <>
             <h1 className={`mt-5 ${H1}`}>
-              Your <span className={CHIP}>2 pairs</span>.
+              Your <span className={CHIP}>{pairCount} pairs</span>.
             </h1>
 
             <section className="mt-6 space-y-2" aria-label="Your pairs">
               <PairRow product={mainProduct} label="1st pair" />
-              {freeProduct ? (
+              {freeProduct && (
                 <PairRow product={freeProduct} label="2nd pair free" free />
-              ) : (
-                <PairRow random label="2nd pair free" free />
               )}
+              <PairRow
+                random
+                free
+                size={randomPairSize}
+                label={`${ordinal(randomPairNo)} pair free`}
+              />
             </section>
 
             <section className="mt-8" aria-labelledby="pay-title">
@@ -669,7 +682,7 @@ export default function CheckoutPage() {
                       checked={addShoeCleaner}
                       onToggle={() => setAddShoeCleaner((v) => !v)}
                       title="Premium Shoe Cleaner"
-                      desc="Keep both pairs looking fresh."
+                      desc="Keep all your pairs looking fresh."
                       price={inr(SHOE_CLEANER_PRICE)}
                       was="₹199"
                       tag="Limited offer"
@@ -725,7 +738,10 @@ export default function CheckoutPage() {
             Summary
           </h2>
           <div className="space-y-2.5 rounded-2xl bg-muted p-4">
-            <Row label="Base price (2 pairs)" value={inr(BASE_PRICE)} />
+            <Row
+              label={`Base price (${pairCount} pairs)`}
+              value={inr(BASE_PRICE)}
+            />
             {pair1Extra > 0 && (
               <Row
                 indent
@@ -742,9 +758,14 @@ export default function CheckoutPage() {
                 value={`+${inr(pair2Extra)}`}
               />
             )}
-            {hasRandomFreePair && (
-              <Row indent muted label="Random surprise pair" value="FREE" />
-            )}
+            <Row
+              indent
+              muted
+              label={`Random surprise pair${
+                randomPairSize ? ` (size ${randomPairSize})` : ""
+              }`}
+              value="FREE"
+            />
             {cleanerCharge > 0 && (
               <Row label="Shoe cleaner" value={`+${inr(SHOE_CLEANER_PRICE)}`} />
             )}

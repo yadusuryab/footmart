@@ -16,9 +16,9 @@ export interface Product {
   offerPrice?: number;
 }
 
-// Card-shuffle screen: shuffle first, then show "selected", then redirect
+// Card-shuffle screen: shuffle first, then show "selected" and ask for the
+// random pair's size, then redirect to checkout
 const SHUFFLE_DURATION_MS = 2200;
-const SELECTED_DURATION_MS = 1400;
 
 /* ---------- Design tokens (same language as the header) ---------- */
 
@@ -113,6 +113,10 @@ export const useAddToCart = () => {
   >(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  // Random surprise pair: the size is picked on the shuffle screen, right after
+  // the animation. We pick the style at packing.
+  const [randomPairSize, setRandomPairSize] = useState<string | null>(null);
+
   const [bogoOffset, setBogoOffset] = useState<number>(0);
   const [bogoHasMore, setBogoHasMore] = useState<boolean>(true);
   const [bogoLoading, setBogoLoading] = useState<boolean>(false);
@@ -136,6 +140,7 @@ export const useAddToCart = () => {
     setSelectedSize(null);
     setSelectedFreeProduct(null);
     setSelectedFreeProductSize(null);
+    setRandomPairSize(null);
     setIsSizeModalOpen(true);
   }, []);
 
@@ -190,6 +195,8 @@ export const useAddToCart = () => {
               selectedSize: freeProductSize,
             }
           : null,
+        // Filled in on the shuffle screen, read by the checkout page.
+        randomPairSize: null,
       };
 
       const updatedCart = [cartItem];
@@ -216,14 +223,29 @@ export const useAddToCart = () => {
     setIsSizeModalOpen(true);
   }, []);
 
-  // Shared: shuffle cards, show "Random pair selected", then redirect
+  // Shared: show the shuffle screen. It asks for the random pair's size once
+  // the animation ends, then calls handleRandomSizeConfirm.
   const goToCheckoutWithAnimation = useCallback(() => {
+    setRandomPairSize(null);
     setIsSuccessAnimationOpen(true);
-    setTimeout(() => {
-      setIsSuccessAnimationOpen(false);
-      router.push("/checkout");
-    }, SHUFFLE_DURATION_MS + SELECTED_DURATION_MS);
-  }, [router]);
+  }, []);
+
+  // Save the random pair size on the cart item, then go to checkout.
+  const handleRandomSizeConfirm = useCallback(() => {
+    if (!randomPairSize) return;
+    try {
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      if (Array.isArray(cart) && cart[0]) {
+        cart[0].randomPairSize = randomPairSize;
+        localStorage.setItem("cart", JSON.stringify(cart));
+        window.dispatchEvent(new Event("cartUpdated"));
+      }
+    } catch (err) {
+      console.error("Could not save random pair size:", err);
+    }
+    setIsSuccessAnimationOpen(false);
+    router.push("/checkout");
+  }, [randomPairSize, router]);
 
   const completeBogoFlow = useCallback(() => {
     if (
@@ -553,11 +575,15 @@ export const useAddToCart = () => {
   const renderSuccessAnimation = useCallback(() => {
     if (!isSuccessAnimationOpen) return null;
 
+    // The random pair is the 3rd pair on a BOGO order, otherwise the 2nd.
+    const ordinal = selectedFreeProduct ? "3rd" : "2nd";
+    const sizeOptions = selectedProduct?.sizes ?? [];
+
     return (
       <div
         role="status"
         aria-live="polite"
-        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black px-6 text-white duration-300 animate-in fade-in"
+        className="fixed inset-0 z-[100] flex flex-col items-center overflow-y-auto bg-black px-6 py-10 text-white duration-300 animate-in fade-in"
       >
         <style>{`
           @keyframes rp-a { 0%,100% { transform: translateX(0) rotate(-8deg); z-index: 1; } 50% { transform: translateX(46px) rotate(6deg); z-index: 3; } }
@@ -568,7 +594,8 @@ export const useAddToCart = () => {
           @media (prefers-reduced-motion: reduce) { .rp-anim, .rp-anim * { animation: none !important; } }
         `}</style>
 
-        <div className="rp-anim flex flex-col items-center">
+        {/* my-auto centers the content and still lets tall content scroll */}
+        <div className="rp-anim my-auto flex w-full max-w-sm flex-col items-center">
           {!shuffleDone ? (
             <>
               <div className="relative h-40 w-40" aria-hidden>
@@ -605,13 +632,13 @@ export const useAddToCart = () => {
               </div>
             </>
           ) : (
-            <>
-              <div className="flex h-40 w-40 items-center justify-center rounded-3xl bg-primary text-black shadow-xl duration-500 animate-in zoom-in-75 fade-in">
-                <CheckIcon className="h-16 w-16" />
+            <div className="flex flex-col items-center duration-500 animate-in fade-in slide-in-from-bottom-2">
+              <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-primary text-black shadow-xl duration-500 animate-in zoom-in-75 fade-in">
+                <CheckIcon className="h-10 w-10" />
               </div>
 
               <h2
-                className={`mt-10 text-center text-[clamp(2rem,8vw,3.5rem)] leading-[1.05] duration-500 animate-in fade-in slide-in-from-bottom-2 ${DISPLAY}`}
+                className={`mt-6 text-center text-[clamp(1.75rem,7vw,2.75rem)] leading-[1.05] ${DISPLAY}`}
               >
                 Random pair
                 <br />
@@ -619,15 +646,67 @@ export const useAddToCart = () => {
                   selected.
                 </span>
               </h2>
-              <p className="mt-4 text-sm font-semibold text-white/60 duration-500 animate-in fade-in">
-                Taking you to checkout...
+
+              <p className="mt-4 text-center text-sm font-semibold text-white/60">
+                Pick a size for your {ordinal} pair. 
               </p>
-            </>
+
+              {/* Size pick */}
+              <div
+                role="group"
+                aria-label={`Size for your ${ordinal} pair`}
+                className="mt-6 flex flex-wrap justify-center gap-2"
+              >
+                {sizeOptions.map((size) => {
+                  const active = randomPairSize === size;
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setRandomPairSize(size)}
+                      className={`h-11 min-w-[52px] rounded-full px-4 text-sm font-bold tracking-tight transition-[transform,background-color,color] duration-200 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none ${
+                        active
+                          ? "bg-primary text-black"
+                          : "bg-white/10 text-white hover:bg-white/20"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Black pill on a black screen would vanish, so this one is primary */}
+              <button
+                type="button"
+                onClick={handleRandomSizeConfirm}
+                disabled={!randomPairSize}
+                className="group mt-8 flex h-14 w-full items-center justify-between rounded-full bg-primary pl-6 pr-1.5 text-black transition-[transform,opacity] duration-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none"
+              >
+                <span className={`text-base ${DISPLAY}`}>
+                  {randomPairSize ? "Go to checkout" : "Pick a size"}
+                </span>
+                <span
+                  aria-hidden
+                  className="ml-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-black text-primary transition-transform duration-300 group-enabled:group-hover:translate-x-0.5 motion-reduce:transition-none"
+                >
+                  <ArrowIcon />
+                </span>
+              </button>
+            </div>
           )}
         </div>
       </div>
     );
-  }, [isSuccessAnimationOpen, shuffleDone]);
+  }, [
+    isSuccessAnimationOpen,
+    shuffleDone,
+    selectedProduct,
+    selectedFreeProduct,
+    randomPairSize,
+    handleRandomSizeConfirm,
+  ]);
 
   return {
     handleProductClick,
