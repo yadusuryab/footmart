@@ -1,8 +1,5 @@
-import React from "react";
 import Link from "next/link";
-import { ChevronRight, ArrowRight, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { site } from "@/lib/site-config";
 
 interface SHeadingProps {
   title?: string;
@@ -15,145 +12,120 @@ interface SHeadingProps {
   size?: "sm" | "md" | "lg";
 }
 
-const SHeading = ({
-  title = "Get Top Deals on the Newest Products",
+const SIZE = {
+  sm: "text-xl md:text-2xl",
+  md: "text-2xl md:text-3xl",
+  lg: "text-3xl md:text-4xl",
+} as const;
+
+// Inline icons. Hoisted, zero icon-library bytes.
+const arrow = (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2.25}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
+    aria-hidden
+  >
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
+
+const chevron = (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2.25}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
+    aria-hidden
+  >
+    <path d="M9 6l6 6-6 6" />
+  </svg>
+);
+
+// Server component: no hooks, no client JS.
+export default function SHeading({
+  title = site.copy.defaultHeading,
   description = "",
   linkHref = "/products",
   nolink = false,
-  buttonText = "View All Products",
+  buttonText = site.copy.viewAll,
   badge,
   centered = true,
-  size = "md"
-}: SHeadingProps) => {
-  const sizeStyles = {
-    sm: {
-      title: "text-xl md:text-2xl",
-      description: "text-sm",
-      container: "mb-2"
-    },
-    md: {
-      title: "text-2xl md:text-3xl",
-      description: "text-base",
-      container: "mb-2"
-    },
-    lg: {
-      title: "text-3xl md:text-4xl",
-      description: "text-md",
-      container: "mb-2"
-    }
-  };
-
-  const currentSize = sizeStyles[size];
-
+  size = "md",
+}: SHeadingProps) {
   return (
-    <div className={`${currentSize.container} w-full ${centered ? 'text-center' : 'text-left'}`}>
-      {/* Badge */}
+    <div
+      className={`flex w-full flex-col gap-3 ${
+        centered ? "items-center text-center" : "items-start text-left"
+      }`}
+    >
       {badge && (
-        <div className={`${centered ? 'flex justify-center' : ''} mb-3`}>
-          <Badge 
-            variant="secondary" 
-            className="px-3 py-1 text-xs font-semibold bg-primary/10 text-primary border-primary/20"
-          >
-            <Sparkles className="h-3 w-3 mr-1" />
-            {badge}
-          </Badge>
-        </div>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-bold text-black ${site.theme.mesh}`}
+        >
+          {badge}
+        </span>
       )}
 
-      {/* Title */}
-      <h2 className={`${currentSize.title} font-semibold tracking-tighter bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3`}>
+      <h2 className={`${SIZE[size]} font-black italic leading-tight tracking-tighter`}>
         {title}
       </h2>
 
-      {/* Description & Link */}
-      <div className={`flex flex-col gap-4 ${centered ? 'items-center' : 'items-start'}`}>
-        <p className={`${currentSize.description} text-muted-foreground max-w-2xl ${centered ? 'mx-auto' : ''}`}>
-          {description}
-        </p>
+      {description && (
+        <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>
+      )}
 
-        {!nolink && (
-          <Button
-            variant="outline"
-            size={size === "lg" ? "lg" : "default"}
-            className="group hover:shadow-md transition-all duration-300 hover:scale-105"
-            asChild
-          >
-            <Link href={linkHref} className="flex items-center gap-2">
-              <span>{buttonText}</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </Button>
-        )}
-      </div>
+      {!nolink && (
+        <Link
+          href={linkHref}
+          prefetch={false}
+          className="group flex h-11 touch-manipulation items-center gap-3 rounded-full bg-black pl-5 pr-1.5 text-sm font-bold text-white transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 motion-reduce:transition-none"
+        >
+          {buttonText}
+          <span className={`grid h-8 w-8 place-items-center rounded-full text-black ${site.theme.mesh}`}>
+            {arrow}
+          </span>
+        </Link>
+      )}
 
-      {/* Optional: Decorative line */}
       {centered && (
-        <div className="flex justify-center ">
-          <div className="w-16 h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full" />
-        </div>
+        <span aria-hidden className={`h-1 w-16 rounded-full ${site.theme.mesh}`} />
       )}
     </div>
   );
-};
+}
 
-// Alternative compact version for inline usage
-export const InlineHeading = ({
+// Compact inline version
+export function InlineHeading({
   title,
   description,
   linkHref,
-  buttonText = "View All"
-}: Pick<SHeadingProps, 'title' | 'description' | 'linkHref' | 'buttonText'>) => {
+  buttonText = site.copy.viewAll,
+}: Pick<SHeadingProps, "title" | "description" | "linkHref" | "buttonText">) {
   return (
-    <div className="flex items-end justify-between mb-6">
-      <div className="flex-1">
-        <h2 className="text-2xl font-bold text-foreground mb-2">{title}</h2>
-        {description && (
-          <p className="text-muted-foreground text-sm">{description}</p>
-        )}
+    <div className="mb-6 flex items-end justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <h2 className="text-2xl font-black italic tracking-tighter">{title}</h2>
+        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </div>
-      
+
       {linkHref && (
-        <Button variant="ghost" size="sm" className="shrink-0 group" asChild>
-          <Link href={linkHref} className="flex items-center gap-1">
-            <span className="text-sm">{buttonText}</span>
-            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </Button>
+        <Link
+          href={linkHref}
+          prefetch={false}
+          className="group flex shrink-0 items-center gap-1 rounded-full bg-black/10 px-4 py-2 text-sm font-bold transition-transform duration-200 active:scale-95 motion-reduce:transition-none"
+        >
+          {buttonText}
+          {chevron}
+        </Link>
       )}
     </div>
   );
-};
-
-// Usage examples:
-/*
-// Basic centered heading
-<SHeading 
-  title="Featured Products"
-  description="Discover our most popular items"
-  linkHref="/products"
-/>
-
-// With badge
-<SHeading 
-  title="New Arrivals"
-  description="Fresh styles just landed"
-  badge="Just In"
-  size="lg"
-/>
-
-// Left aligned
-<SHeading 
-  title="Category Products"
-  description="Browse by category"
-  centered={false}
-/>
-
-// Compact inline version
-<InlineHeading 
-  title="Related Products"
-  description="You might also like"
-  linkHref="/related"
-/>
-*/
-
-export default SHeading;
+}

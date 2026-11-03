@@ -1,13 +1,8 @@
 "use client";
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Search, CheckCircle, ArrowRightCircle, Ruler, CheckCircle2 } from "lucide-react";
-import SHeading from "@/components/utils/section-heading";
-import { IconSquareRoundedCheckFilled } from "@tabler/icons-react";
 import ProductCard2 from "@/components/product/product-image-card";
 import Image from "next/image";
 
@@ -21,14 +16,101 @@ export interface Product {
   offerPrice?: number;
 }
 
+// Card-shuffle screen: shuffle first, then show "selected", then redirect
+const SHUFFLE_DURATION_MS = 2200;
+const SELECTED_DURATION_MS = 1400;
+
+/* ---------- Design tokens (same language as the header) ---------- */
+
+const DISPLAY = "font-black italic tracking-tighter";
+
+// Inline icons: zero icon-library bytes.
+const iconProps = {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2.5,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": true,
+} as const;
+
+const CheckIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg {...iconProps} className={className}>
+    <path d="M5 12l5 5L20 7" />
+  </svg>
+);
+
+const ArrowIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <svg {...iconProps} className={className}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
+
+// Hoisted so React never remounts them between renders.
+const PillCTA = ({
+  children,
+  onClick,
+  disabled,
+  className = "",
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  className?: string;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className={`group flex h-14 items-center justify-between rounded-full bg-black pl-6 pr-1.5 text-white transition-[transform,opacity] duration-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black motion-reduce:transition-none ${className}`}
+  >
+    <span className={`text-base ${DISPLAY}`}>{children}</span>
+    <span
+      aria-hidden
+      className="ml-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-black transition-transform duration-300 group-enabled:group-hover:translate-x-0.5 motion-reduce:transition-none"
+    >
+      <ArrowIcon />
+    </span>
+  </button>
+);
+
+const Thumbnail = ({
+  product,
+  alt,
+  className = "h-12 w-12",
+}: {
+  product: Product;
+  alt: string;
+  className?: string;
+}) => (
+  <div
+    className={`${className} shrink-0 overflow-hidden rounded-xl bg-muted`}
+  >
+    <Image
+      src={product.imageUrl || "/placeholder-image.jpg"}
+      alt={alt}
+      width={56}
+      height={56}
+      sizes="56px"
+      quality={40}
+      className="h-full w-full object-cover"
+      loading="lazy"
+    />
+  </div>
+);
+
 export const useAddToCart = () => {
   const router = useRouter();
   const [isBogoModalOpen, setIsBogoModalOpen] = useState(false);
   const [isSizeModalOpen, setIsSizeModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedFreeProduct, setSelectedFreeProduct] = useState<Product | null>(null);
+  const [selectedFreeProduct, setSelectedFreeProduct] =
+    useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedFreeProductSize, setSelectedFreeProductSize] = useState<string | null>(null);
+  const [selectedFreeProductSize, setSelectedFreeProductSize] = useState<
+    string | null
+  >(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const [bogoOffset, setBogoOffset] = useState<number>(0);
@@ -36,8 +118,18 @@ export const useAddToCart = () => {
   const [bogoLoading, setBogoLoading] = useState<boolean>(false);
   const [allBogoProducts, setAllBogoProducts] = useState<Product[]>([]);
 
-  // ✅ Success animation state
+  // Card shuffle screen state (shown right before checkout)
   const [isSuccessAnimationOpen, setIsSuccessAnimationOpen] = useState(false);
+  const [shuffleDone, setShuffleDone] = useState(false);
+
+  useEffect(() => {
+    if (!isSuccessAnimationOpen) {
+      setShuffleDone(false);
+      return;
+    }
+    const t = setTimeout(() => setShuffleDone(true), SHUFFLE_DURATION_MS);
+    return () => clearTimeout(t);
+  }, [isSuccessAnimationOpen]);
 
   const handleProductClick = useCallback((product: Product) => {
     setSelectedProduct(product);
@@ -56,10 +148,12 @@ export const useAddToCart = () => {
       const data: any = await getAllShoes(null, 12, bogoOffset);
 
       if (data?.length) {
-        const newBogoProducts = data.filter((item: Product) => item.buyOneGetOne);
-        setAllBogoProducts(prev => [...prev, ...newBogoProducts]);
+        const newBogoProducts = data.filter(
+          (item: Product) => item.buyOneGetOne,
+        );
+        setAllBogoProducts((prev) => [...prev, ...newBogoProducts]);
         setBogoHasMore(data.length === 12);
-        setBogoOffset(prev => prev + data.length);
+        setBogoOffset((prev) => prev + data.length);
       } else {
         setBogoHasMore(false);
       }
@@ -80,33 +174,41 @@ export const useAddToCart = () => {
     }
   }, [isBogoModalOpen, allBogoProducts.length, loadMoreBogoProducts]);
 
-  const addToCart = useCallback((
-    item: Product,
-    size: string,
-    freeProduct?: Product | null,
-    freeProductSize?: string | null
-  ) => {
-    const cartItem = {
-      ...item,
-      selectedSize: size,
-      freeProduct: freeProduct ? {
-        ...freeProduct,
-        selectedSize: freeProductSize
-      } : null,
-    };
+  const addToCart = useCallback(
+    (
+      item: Product,
+      size: string,
+      freeProduct?: Product | null,
+      freeProductSize?: string | null,
+    ) => {
+      const cartItem = {
+        ...item,
+        selectedSize: size,
+        freeProduct: freeProduct
+          ? {
+              ...freeProduct,
+              selectedSize: freeProductSize,
+            }
+          : null,
+      };
 
-    const updatedCart = [cartItem];
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    window.dispatchEvent(new Event("cartUpdated"));
-    toast.success(`${item.productName} added to cart!`);
-  }, []);
+      const updatedCart = [cartItem];
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      window.dispatchEvent(new Event("cartUpdated"));
+      toast.success(`${item.productName} added to cart!`);
+    },
+    [],
+  );
 
-  const filteredBogoProducts = useCallback((bogoProducts: Product[]) => {
-    if (!searchQuery.trim()) return bogoProducts;
-    return bogoProducts.filter(product =>
-      product.productName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+  const filteredBogoProducts = useCallback(
+    (bogoProducts: Product[]) => {
+      if (!searchQuery.trim()) return bogoProducts;
+      return bogoProducts.filter((product) =>
+        product.productName.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+    },
+    [searchQuery],
+  );
 
   const handleFreeProductSelect = useCallback((bogoProduct: Product) => {
     setSelectedFreeProduct(bogoProduct);
@@ -114,344 +216,418 @@ export const useAddToCart = () => {
     setIsSizeModalOpen(true);
   }, []);
 
-  // ✅ Shared: show success animation, then redirect
+  // Shared: shuffle cards, show "Random pair selected", then redirect
   const goToCheckoutWithAnimation = useCallback(() => {
     setIsSuccessAnimationOpen(true);
     setTimeout(() => {
       setIsSuccessAnimationOpen(false);
       router.push("/checkout");
-    }, 3600);
+    }, SHUFFLE_DURATION_MS + SELECTED_DURATION_MS);
   }, [router]);
 
   const completeBogoFlow = useCallback(() => {
-    if (selectedFreeProduct && selectedFreeProductSize && selectedProduct && selectedSize) {
-      addToCart(selectedProduct, selectedSize, selectedFreeProduct, selectedFreeProductSize);
+    if (
+      selectedFreeProduct &&
+      selectedFreeProductSize &&
+      selectedProduct &&
+      selectedSize
+    ) {
+      addToCart(
+        selectedProduct,
+        selectedSize,
+        selectedFreeProduct,
+        selectedFreeProductSize,
+      );
       setIsBogoModalOpen(false);
       setIsSizeModalOpen(false);
       goToCheckoutWithAnimation();
     }
-  }, [selectedProduct, selectedSize, selectedFreeProduct, selectedFreeProductSize, addToCart, goToCheckoutWithAnimation]);
+  }, [
+    selectedProduct,
+    selectedSize,
+    selectedFreeProduct,
+    selectedFreeProductSize,
+    addToCart,
+    goToCheckoutWithAnimation,
+  ]);
 
-  const handleBogoScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop <= clientHeight + 300 && !bogoLoading && bogoHasMore) {
-      loadMoreBogoProducts();
-    }
-  }, [bogoLoading, bogoHasMore, loadMoreBogoProducts]);
+  const handleBogoScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+      if (
+        scrollHeight - scrollTop <= clientHeight + 300 &&
+        !bogoLoading &&
+        bogoHasMore
+      ) {
+        loadMoreBogoProducts();
+      }
+    },
+    [bogoLoading, bogoHasMore, loadMoreBogoProducts],
+  );
 
-  const renderBogoPage = useCallback((initialBogoProducts: Product[]) => {
-    if (!isBogoModalOpen || !selectedProduct) return null;
+  /* ---------- BOGO page ---------- */
 
-    const combinedBogoProducts = [...initialBogoProducts, ...allBogoProducts];
-    const filteredProducts = filteredBogoProducts(combinedBogoProducts);
+  const renderBogoPage = useCallback(
+    (initialBogoProducts: Product[]) => {
+      if (!isBogoModalOpen || !selectedProduct) return null;
 
-    const Thumbnail = ({ product, alt }: { product: Product; alt: string }) => (
-      <div className="w-12 h-12 bg-white rounded border overflow-hidden flex-shrink-0">
-        <Image
-          src={product.imageUrl || "/placeholder-image.jpg"}
-          alt={alt}
-          width={48}
-          height={48}
-          quality={40}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-      </div>
-    );
+      const combinedBogoProducts = [...initialBogoProducts, ...allBogoProducts];
+      const filteredProducts = filteredBogoProducts(combinedBogoProducts);
 
-    return (
-      <div className="fixed inset-0 mt-2 bg-background h-full z-50 p-4 overflow-y-auto">
-        <SHeading title="Select 2nd Pair" nolink />
-
-        {selectedProduct && (
-          <div className="flex items-center gap-3 mb-4 p-3 bg-muted/30 rounded-lg">
-            <Thumbnail product={selectedProduct} alt="Your first pair" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Your first pair</p>
-              <p className="text-xs text-muted-foreground">Size: {selectedSize}</p>
-            </div>
-            <Badge variant="secondary" className="text-xs flex-shrink-0">✓ Selected</Badge>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between mb-4">
-          {selectedFreeProduct && !selectedFreeProductSize && (
-            <div className="flex items-center gap-1 text-amber-600 text-sm">
-              <Ruler className="h-4 w-4" />
-              <span>Select size for 2nd pair</span>
-            </div>
-          )}
-        </div>
-
+      return (
+        // The page itself is the scroll container, so infinite scroll
+        // listens here and there is no nested scrolling.
         <div
-          className="grid md:grid-cols-3 grid-cols-2 gap-3 mb-20 max-h-[60vh] overflow-y-auto"
           onScroll={handleBogoScroll}
+          className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-background duration-500 animate-in fade-in slide-in-from-bottom-6"
         >
-          {filteredProducts.length === 0 ? (
-            <div className="col-span-full text-center py-8">
-              <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-              <p className="text-muted-foreground text-sm">No products found</p>
-            </div>
-          ) : (
-            filteredProducts.map((bogoProduct) => (
-              <div key={bogoProduct._id} className="w-full">
-                <div className={`relative rounded-lg border transition-colors ${
-                  selectedFreeProduct?._id === bogoProduct._id ? "border-primary" : "border-border"
-                }`}>
-                  <ProductCard2
-                    product={bogoProduct}
-                    className="w-full"
-                    noLink={true}
-                    onClick={() => handleFreeProductSelect(bogoProduct)}
-                  />
-                  {selectedFreeProduct?._id === bogoProduct._id && (
-                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1">
-                      <CheckCircle className="h-3 w-3" />
-                    </div>
-                  )}
-                </div>
+          <div className="mx-auto max-w-5xl px-4 pb-40 pt-6 sm:px-8">
+            {/* Heading */}
+            <h2
+              className={`text-balance text-[clamp(2.25rem,8vw,4.5rem)] leading-[1] ${DISPLAY}`}
+            >
+              Choose your
+              <br />
+              <span className="rounded-md bg-black px-1.5 py-0.5 text-primary">
+                free
+              </span>{" "}
+              pair.
+            </h2>
+
+            {/* First pair */}
+            <div className="mt-6 flex items-center gap-3 rounded-2xl bg-muted p-2.5">
+              <Thumbnail
+                product={selectedProduct}
+                alt="Your first pair"
+                className="h-14 w-14"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold tracking-tight">
+                  {selectedProduct.productName}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  1st pair, size {selectedSize}
+                </p>
               </div>
-            ))
-          )}
-
-          {bogoLoading && (
-            <div className="col-span-full text-center py-3">
-              <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-black px-2.5 py-1 text-xs font-bold text-primary">
+                <CheckIcon className="h-3 w-3" /> Locked
+              </span>
             </div>
-          )}
-        </div>
 
-        <div className="fixed bottom-0 left-0 w-full bg-background border-t p-4">
-          <div className="max-w-2xl mx-auto">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
+            {/* Status (height reserved so the grid never jumps) */}
+            <div className="mb-4 mt-4 h-5" aria-live="polite">
+              {selectedFreeProduct && !selectedFreeProductSize && (
+                <p className="text-sm font-bold duration-300 animate-in fade-in slide-in-from-left-2">
+                  Select a size for your 2nd pair
+                </p>
+              )}
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+              {filteredProducts.length === 0 ? (
+                <p
+                  className={`col-span-full py-16 text-center text-lg text-muted-foreground ${DISPLAY}`}
+                >
+                  No products found
+                </p>
+              ) : (
+                filteredProducts.map((bogoProduct) => {
+                  const picked = selectedFreeProduct?._id === bogoProduct._id;
+                  return (
+                    <div
+                      key={bogoProduct._id}
+                      // Off-screen cards skip layout and paint work.
+                      className="w-full [contain-intrinsic-size:auto_280px] [content-visibility:auto]"
+                    >
+                      <div
+                        className={`relative rounded-2xl outline outline-[3px] outline-offset-2 transition-[outline-color,transform] duration-300 active:scale-[0.98] motion-reduce:transition-none ${
+                          picked ? "outline-primary" : "outline-transparent"
+                        }`}
+                      >
+                        <ProductCard2
+                          product={bogoProduct}
+                          className="w-full"
+                          noLink={true}
+                          onClick={() => handleFreeProductSelect(bogoProduct)}
+                        />
+                        {picked && (
+                          <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black text-primary duration-300 animate-in zoom-in-50">
+                            <CheckIcon />
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+
+              {bogoLoading && (
+                <div className="col-span-full py-3" aria-hidden>
+                  <div className="h-1 w-full animate-pulse rounded-full bg-black" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div
+            className="fixed bottom-0 left-0 w-full rounded-t-3xl bg-background px-4 pt-4 shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.25)]"
+            style={{
+              paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))",
+            }}
+          >
+            <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
                 {selectedFreeProduct ? (
                   <>
-                    <Thumbnail product={selectedFreeProduct} alt="Selected free product" />
+                    <Thumbnail
+                      product={selectedFreeProduct}
+                      alt="Your free pair"
+                      className="h-12 w-12 !rounded-full"
+                    />
                     <div className="min-w-0 flex-1">
                       {selectedFreeProductSize ? (
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">Size {selectedFreeProductSize}</Badge>
-                          <span className="text-xs text-green-600 font-medium">✓ Ready</span>
-                        </div>
+                        <>
+                          <p className="text-sm font-bold tracking-tight">
+                            Size {selectedFreeProductSize}
+                          </p>
+                          <p className="text-xs font-medium text-muted-foreground">
+                            Ready
+                          </p>
+                        </>
                       ) : (
                         <button
-                          onClick={() => handleFreeProductSelect(selectedFreeProduct)}
-                          className="text-xs text-amber-600 underline font-medium"
+                          type="button"
+                          onClick={() =>
+                            handleFreeProductSelect(selectedFreeProduct)
+                          }
+                          className="text-sm font-bold underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                         >
-                          ← Select size
+                          Select size
                         </button>
                       )}
                     </div>
                   </>
                 ) : (
-                  <div className="text-sm text-muted-foreground">Select your 2nd pair (Free)</div>
+                  <p className="text-sm font-semibold text-muted-foreground">
+                    Select your 2nd pair (free)
+                  </p>
                 )}
               </div>
 
-              <Button
-                size="lg"
+              <PillCTA
                 onClick={completeBogoFlow}
                 disabled={!selectedFreeProduct || !selectedFreeProductSize}
-                className="min-w-[140px] h-11 font-medium"
+                className="min-w-[150px]"
               >
-                {selectedFreeProductSize ? (
-                  <div className="flex items-center gap-2">
-                    Checkout <ArrowRightCircle className="h-4 w-4" />
-                  </div>
-                ) : (
-                  "Select Size First"
-                )}
-              </Button>
+                {selectedFreeProductSize ? "Checkout" : "Pick a size"}
+              </PillCTA>
             </div>
           </div>
         </div>
-      </div>
-    );
-  }, [isBogoModalOpen, selectedProduct, selectedSize, selectedFreeProduct, selectedFreeProductSize, filteredBogoProducts, handleFreeProductSelect, completeBogoFlow, allBogoProducts, bogoLoading, bogoHasMore, handleBogoScroll]);
-
-  const renderSizeModal = useCallback((bogoProducts: Product[]) => {
-    const isSelectingFreeProduct = !!selectedFreeProduct;
-    const currentProduct = isSelectingFreeProduct ? selectedFreeProduct : selectedProduct;
-    const currentSize = isSelectingFreeProduct ? selectedFreeProductSize : selectedSize;
-
-    if (!currentProduct) return null;
-
-    return (
-      <Dialog open={isSizeModalOpen} onOpenChange={setIsSizeModalOpen}>
-        <DialogContent className="max-h-[90vh] p-4 rounded-2xl max-w-[320px]">
-          <DialogTitle className="sr-only">Select Size</DialogTitle>
-
-          <div className="flex justify-center mb-4">
-            <ProductCard2 product={currentProduct} noLink={true} />
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
-            {currentProduct.sizes?.map((size: string) => (
-              <Button
-                key={size}
-                className="min-w-[60px]"
-                variant={currentSize === size ? "default" : "outline"}
-                onClick={() => {
-                  if (isSelectingFreeProduct) {
-                    setSelectedFreeProductSize(size);
-                  } else {
-                    setSelectedSize(size);
-                  }
-                }}
-              >
-                {size}
-              </Button>
-            ))}
-          </div>
-
-          <Button
-            size="lg"
-            onClick={() => {
-              if (!currentSize) {
-                toast.error("Please select a size");
-                return;
-              }
-
-              if (isSelectingFreeProduct) {
-                setIsSizeModalOpen(false);
-                completeBogoFlow();
-              } else {
-                if (selectedProduct?.buyOneGetOne) {
-                  setIsBogoModalOpen(true);
-                  setIsSizeModalOpen(false);
-                } else {
-                  addToCart(selectedProduct!, currentSize);
-                  setIsSizeModalOpen(false);
-                  goToCheckoutWithAnimation();
-                }
-              }
-            }}
-            className="w-full"
-            disabled={!currentSize}
-          >
-            {isSelectingFreeProduct ? "Confirm & Checkout" : "Confirm Size"}
-            <IconSquareRoundedCheckFilled className="ml-2" />
-          </Button>
-        </DialogContent>
-      </Dialog>
-    );
-  }, [isSizeModalOpen, selectedFreeProduct, selectedProduct, selectedFreeProductSize, selectedSize, completeBogoFlow, addToCart, goToCheckoutWithAnimation]);
-
-  // ✅ Fancy multi-stage GPay-style success animation
-  const [animStage, setAnimStage] = useState<0 | 1 | 2>(0);
-
-  useEffect(() => {
-    if (!isSuccessAnimationOpen) {
-      setAnimStage(0);
-      return;
-    }
-    const t1 = setTimeout(() => setAnimStage(1), 1300);
-    const t2 = setTimeout(() => setAnimStage(2), 2200);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [isSuccessAnimationOpen]);
-
-  const confettiPieces = useMemo(
-    () =>
-      Array.from({ length: 24 }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        delay: Math.random() * 0.6,
-        duration: 1.4 + Math.random() * 1.2,
-        size: 6 + Math.random() * 6,
-        color: ["#22c55e", "#3b82f6", "#f59e0b", "#ec4899", "#a855f7"][i % 5],
-        rotate: Math.random() * 360,
-      })),
-    []
+      );
+    },
+    [
+      isBogoModalOpen,
+      selectedProduct,
+      selectedSize,
+      selectedFreeProduct,
+      selectedFreeProductSize,
+      filteredBogoProducts,
+      handleFreeProductSelect,
+      completeBogoFlow,
+      allBogoProducts,
+      bogoLoading,
+      handleBogoScroll,
+    ],
   );
+
+  /* ---------- Size modal ---------- */
+
+  const renderSizeModal = useCallback(
+    (bogoProducts: Product[]) => {
+      const isSelectingFreeProduct = !!selectedFreeProduct;
+      const currentProduct = isSelectingFreeProduct
+        ? selectedFreeProduct
+        : selectedProduct;
+      const currentSize = isSelectingFreeProduct
+        ? selectedFreeProductSize
+        : selectedSize;
+
+      if (!currentProduct) return null;
+
+      const goesToBogo = !isSelectingFreeProduct && !!selectedProduct?.buyOneGetOne;
+
+      return (
+        <Dialog open={isSizeModalOpen} onOpenChange={setIsSizeModalOpen}>
+          <DialogContent className="max-h-[90vh] max-w-[340px] gap-0 overflow-y-auto rounded-3xl border-0 bg-background p-4">
+            <div className="mb-4 overflow-hidden rounded-2xl">
+              <ProductCard2 product={currentProduct} noLink={true} />
+            </div>
+
+            <DialogTitle
+              className={`mb-1 line-clamp-1 text-2xl leading-none ${DISPLAY}`}
+            >
+              {currentProduct.productName}
+            </DialogTitle>
+            <p className="mb-4 text-sm font-semibold text-muted-foreground">
+              Select your size
+            </p>
+
+            <div
+              role="group"
+              aria-label="Size"
+              className="mb-6 flex flex-wrap gap-2"
+            >
+              {currentProduct.sizes?.map((size: string) => {
+                const active = currentSize === size;
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => {
+                      if (isSelectingFreeProduct) {
+                        setSelectedFreeProductSize(size);
+                      } else {
+                        setSelectedSize(size);
+                      }
+                    }}
+                    className={`h-11 min-w-[52px] rounded-full px-4 text-sm font-bold tracking-tight transition-[transform,background-color,color] duration-200 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black motion-reduce:transition-none ${
+                      active
+                        ? "bg-black text-white"
+                        : "bg-muted text-foreground hover:bg-muted/70"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                );
+              })}
+            </div>
+
+            <PillCTA
+              disabled={!currentSize}
+              className="w-full"
+              onClick={() => {
+                if (!currentSize) {
+                  toast.error("Please select a size");
+                  return;
+                }
+
+                if (isSelectingFreeProduct) {
+                  setIsSizeModalOpen(false);
+                  completeBogoFlow();
+                } else {
+                  if (selectedProduct?.buyOneGetOne) {
+                    setIsBogoModalOpen(true);
+                    setIsSizeModalOpen(false);
+                  } else {
+                    addToCart(selectedProduct!, currentSize);
+                    setIsSizeModalOpen(false);
+                    goToCheckoutWithAnimation();
+                  }
+                }
+              }}
+            >
+              {goesToBogo ? "Confirm size" : "Confirm & checkout"}
+            </PillCTA>
+          </DialogContent>
+        </Dialog>
+      );
+    },
+    [
+      isSizeModalOpen,
+      selectedFreeProduct,
+      selectedProduct,
+      selectedFreeProductSize,
+      selectedSize,
+      completeBogoFlow,
+      addToCart,
+      goToCheckoutWithAnimation,
+    ],
+  );
+
+  /* ---------- Shuffle screen (full-screen black, like the menu) ---------- */
 
   const renderSuccessAnimation = useCallback(() => {
     if (!isSuccessAnimationOpen) return null;
 
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-md overflow-hidden">
-        {/* Confetti layer */}
-        {animStage >= 1 && (
-          <div className="pointer-events-none absolute inset-0">
-            {confettiPieces.map((p) => (
-              <span
-                key={p.id}
-                className="absolute top-0 rounded-sm opacity-90"
-                style={{
-                  left: `${p.left}%`,
-                  width: p.size,
-                  height: p.size * 0.4,
-                  backgroundColor: p.color,
-                  transform: `rotate(${p.rotate}deg)`,
-                  animation: `confetti-fall ${p.duration}s ease-in ${p.delay}s forwards`,
-                }}
-              />
-            ))}
-          </div>
-        )}
+      <div
+        role="status"
+        aria-live="polite"
+        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black px-6 text-white duration-300 animate-in fade-in"
+      >
+        <style>{`
+          @keyframes rp-a { 0%,100% { transform: translateX(0) rotate(-8deg); z-index: 1; } 50% { transform: translateX(46px) rotate(6deg); z-index: 3; } }
+          @keyframes rp-b { 0%,100% { transform: translateX(0) rotate(0deg); z-index: 2; } 50% { transform: translateX(-46px) rotate(-6deg); z-index: 1; } }
+          @keyframes rp-c { 0%,100% { transform: translateX(0) rotate(8deg); z-index: 3; } 50% { transform: translateX(0) rotate(0deg) translateY(-14px); z-index: 2; } }
+          @keyframes rp-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+          @keyframes rp-dots { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+          @media (prefers-reduced-motion: reduce) { .rp-anim, .rp-anim * { animation: none !important; } }
+        `}</style>
 
-        <div className="flex flex-col items-center gap-5 px-8 text-center">
-          {/* Stage 0: spinning gift box, searching for surprise */}
-          {animStage < 1 && (
-            <div className="relative flex items-center justify-center h-28 w-28">
-              <span className="absolute inline-flex h-28 w-28 rounded-full border-2 border-dashed border-primary/30 animate-[spin_2.5s_linear_infinite]"></span>
-              <span className="absolute inline-flex h-20 w-20 rounded-full bg-primary/10 animate-ping"></span>
-              <span className="relative text-6xl animate-bounce">🎁</span>
-            </div>
-          )}
+        <div className="rp-anim flex flex-col items-center">
+          {!shuffleDone ? (
+            <>
+              <div className="relative h-40 w-40" aria-hidden>
+                {(["a", "b", "c"] as const).map((k) => (
+                  <div
+                    key={k}
+                    className={`absolute inset-0 flex items-center justify-center rounded-3xl bg-primary text-7xl text-black shadow-xl will-change-transform ${DISPLAY}`}
+                    style={{ animation: `rp-${k} 0.9s ease-in-out infinite` }}
+                  >
+                    ?
+                  </div>
+                ))}
+              </div>
 
-          {animStage < 1 && (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-150">
-              <p className="text-lg font-semibold tracking-tight">Picking your surprise…</p>
-              <p className="text-xs text-muted-foreground mt-1">Hang tight, this one's good</p>
-            </div>
-          )}
-
-          {/* Stage 1: box pops open revealing the free pair */}
-          {animStage >= 1 && (
-            <div className="flex flex-col items-center gap-3 animate-in fade-in zoom-in duration-500">
-              <div className="relative flex items-center justify-center h-24 w-24">
-                <span className="absolute inline-flex h-24 w-24 rounded-full bg-amber-400/20 animate-ping"></span>
-                <span className="relative flex h-20 w-20 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 items-center justify-center shadow-lg shadow-amber-500/30 animate-in zoom-in spin-in-6 duration-700">
-                  <span className="text-4xl">👟</span>
+              <h2
+                className={`mt-10 text-center text-[clamp(2rem,8vw,3.5rem)] leading-[1.05] ${DISPLAY}`}
+              >
+                Picking a random pair
+                <span
+                  className="inline-block"
+                  style={{ animation: "rp-dots 1s ease-in-out infinite" }}
+                >
+                  ...
                 </span>
-              </div>
-              <div>
-                <p className="text-lg font-semibold tracking-tight">Free Pair Unlocked!</p>
-                <p className="text-sm text-muted-foreground mt-1 max-w-[240px]">
-                  🎉 A random pair of shoes has been added with your purchase!
-                </p>
-              </div>
-            </div>
-          )}
+              </h2>
 
-          {/* Stage 2: redirecting */}
-          {animStage >= 2 && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground animate-in fade-in duration-300">
-              <span className="h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin"></span>
-              Taking you to checkout…
-            </div>
+              <div className="mt-8 h-1 w-52 overflow-hidden rounded-full bg-white/15">
+                <div
+                  className="h-full w-full origin-left rounded-full bg-primary will-change-transform"
+                  style={{
+                    animation: `rp-bar ${SHUFFLE_DURATION_MS}ms cubic-bezier(0.76,0,0.24,1) forwards`,
+                  }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex h-40 w-40 items-center justify-center rounded-3xl bg-primary text-black shadow-xl duration-500 animate-in zoom-in-75 fade-in">
+                <CheckIcon className="h-16 w-16" />
+              </div>
+
+              <h2
+                className={`mt-10 text-center text-[clamp(2rem,8vw,3.5rem)] leading-[1.05] duration-500 animate-in fade-in slide-in-from-bottom-2 ${DISPLAY}`}
+              >
+                Random pair
+                <br />
+                <span className="rounded-md bg-primary px-1.5 py-0.5 text-black">
+                  selected.
+                </span>
+              </h2>
+              <p className="mt-4 text-sm font-semibold text-white/60 duration-500 animate-in fade-in">
+                Taking you to checkout...
+              </p>
+            </>
           )}
         </div>
-
-        <style jsx>{`
-          @keyframes confetti-fall {
-            0% {
-              transform: translateY(-10px) rotate(0deg);
-              opacity: 1;
-            }
-            100% {
-              transform: translateY(420px) rotate(360deg);
-              opacity: 0;
-            }
-          }
-        `}</style>
       </div>
     );
-  }, [isSuccessAnimationOpen, animStage, confettiPieces]);
+  }, [isSuccessAnimationOpen, shuffleDone]);
 
   return {
     handleProductClick,

@@ -171,3 +171,5 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes marquee { to { transform: translateX(-50%); } }

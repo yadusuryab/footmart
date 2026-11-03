@@ -33,7 +33,7 @@ export default function ProductCard2({
   const cardContent = (
     <div
       onClick={onClick}
-      className={`rounded-2xl overflow-hidden cursor-pointer border-4 border-black shadow-[3px_3px_0_0_#000] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_#000] ${className}`}
+      className={`rounded-2xl overflow-hidden cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_#000] ${className}`}
     >
       {/* ✅ OPTIMIZED Image with Next.js Image component */}
       <div className="aspect-square relative bg-primary/10 overflow-hidden">

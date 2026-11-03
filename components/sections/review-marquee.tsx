@@ -1,41 +1,57 @@
 // components/sections/reviews-marquee.tsx
-"use client";
+// Server component. No client JS, no fetch waterfall, no spinner, no <style> tag.
+// Reuses the `marquee` keyframes from globals.css (the same ones the header uses):
+//   @keyframes marquee { to { transform: translateX(-50%); } }
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
+import { site } from "@/lib/site-config";
+
+const CARD_W = 188; // card + gap, px. Used to size the loop.
+const MIN_GROUP_PX = 2600; // one group must outrun ultrawide screens, or the loop shows a gap.
 
 function MarqueeRow({
   images,
-  direction,
-  speedSeconds,
+  reverse,
 }: {
   images: string[];
-  direction: "left" | "right";
-  speedSeconds: number;
+  reverse?: boolean;
 }) {
-  // Duplicate the list so the strip can loop seamlessly.
-  const doubled = [...images, ...images];
+  // Repeat the set until one group is wider than any screen.
+  const reps = Math.max(1, Math.ceil(MIN_GROUP_PX / (images.length * CARD_W)));
+  const group = Array.from({ length: reps }).flatMap(() => images);
+  // About 47px per second regardless of how many photos there are.
+  const seconds = Math.round((group.length * CARD_W) / 47);
 
   return (
-    <div className="group relative overflow-hidden">
+    <div className="overflow-hidden">
       <div
-        className="flex w-max gap-4 group-hover:[animation-play-state:paused]"
-        style={{
-          animation: `marquee-${direction} ${speedSeconds}s linear infinite`,
-        }}
+        style={{ animationDuration: `${seconds}s` }}
+        className={`flex w-max animate-[marquee_40s_linear_infinite] will-change-transform hover:[animation-play-state:paused] motion-reduce:animate-none ${
+          reverse ? "[animation-direction:reverse]" : ""
+        }`}
       >
-        {doubled.map((src, i) => (
+        {[0, 1].map((copy) => (
           <div
-            key={`${src}-${i}`}
-            className="relative h-64 w-36 shrink-0 overflow-hidden rounded-2xl border-4 border-black shadow-[4px_4px_0_0_#000] sm:h-80 sm:w-44 even:-rotate-2 odd:rotate-2"
+            key={copy}
+            aria-hidden={copy === 1}
+            className="flex shrink-0 gap-3 pr-3"
           >
-            <Image
-              src={src}
-              alt="Customer review"
-              fill
-              sizes="(max-width: 640px) 144px, 176px"
-              className="object-cover"
-            />
+            {group.map((src, i) => (
+              <div
+                key={`${copy}-${i}`}
+                className="relative h-64 w-36 shrink-0 overflow-hidden rounded-3xl bg-black/10 sm:h-80 sm:w-44"
+              >
+                <Image
+                  src={src}
+                  alt={copy === 0 ? "Customer review" : ""}
+                  fill
+                  sizes="(max-width: 640px) 144px, 176px"
+                  quality={50}
+                  draggable={false}
+                  className="object-cover"
+                />
+              </div>
+            ))}
           </div>
         ))}
       </div>
@@ -43,88 +59,28 @@ function MarqueeRow({
   );
 }
 
-export function ReviewsMarquee() {
-  const [images, setImages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+export function ReviewsMarquee({ images }: { images: string[] }) {
+  if (!images?.length) return null;
 
-  useEffect(() => {
-    let cancelled = false;
-
-    fetch("/api/reviews")
-      .then((res) => res.json())
-      .then((data: { images: string[] }) => {
-        if (!cancelled) setImages(data.images ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) setImages([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (loading) {
-    return (
-      <section className="py-12">
-        <div className="flex justify-center gap-2 text-sm font-bold uppercase tracking-widest text-black/50">
-          <div className="w-4 h-4 border-2 border-black/40 border-t-black rounded-full animate-spin" />
-          Loading reviews…
-        </div>
-      </section>
-    );
-  }
-
-  if (images.length === 0) {
-    return null;
-  }
-
-  // Split into two rows for a denser, alternating-direction marquee.
+  // Two rows, opposite directions.
   const mid = Math.ceil(images.length / 2);
   const rowA = images.slice(0, mid);
   const rowB = images.slice(mid);
 
   return (
-    <section className="py-12">
-      <div className="flex justify-center mb-8">
-        <h2 className="inline-block bg-black text-primary text-2xl sm:text-3xl font-black italic uppercase tracking-tight px-5 py-2 rounded-full border-2 border-white shadow-[3px_3px_0_0_#000] -rotate-1">
-          Loved by our customers
+    // content-visibility skips layout, paint and animation until the section is near the screen.
+    <section className="py-12 [contain-intrinsic-size:auto_760px] [content-visibility:auto]">
+      <div className="mb-8 flex justify-center px-4">
+        <h2 className="rounded-full bg-black px-5 py-2 text-2xl font-black italic tracking-tighter text-white sm:text-3xl">
+          {site.reviews.title[0]}{" "}
+          <span className={site.theme.accentText}>{site.reviews.title[1]}</span>
         </h2>
       </div>
 
-      <div className="flex flex-col gap-6">
-        <MarqueeRow images={rowA} direction="left" speedSeconds={Math.max(40, rowA.length * 4)} />
-        {rowB.length > 0 && (
-          <MarqueeRow images={rowB} direction="right" speedSeconds={Math.max(40, rowB.length * 4)} />
-        )}
+      <div className="flex flex-col gap-3">
+        <MarqueeRow images={rowA} />
+        {rowB.length > 0 && <MarqueeRow images={rowB} reverse />}
       </div>
-
-      <style jsx global>{`
-        @keyframes marquee-left {
-          from {
-            transform: translateX(0);
-          }
-          to {
-            transform: translateX(-50%);
-          }
-        }
-        @keyframes marquee-right {
-          from {
-            transform: translateX(-50%);
-          }
-          to {
-            transform: translateX(0);
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .group [style*="animation"] {
-            animation: none !important;
-          }
-        }
-      `}</style>
     </section>
   );
 }

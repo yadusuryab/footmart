@@ -1,38 +1,33 @@
-"use client";
+// app/page.tsx
+// Server component: no "use client". Reviews are read on the server and sent in the first HTML.
 
-import BrandStory from "@/components/sections/brand-story-about";
 import { Hero } from "@/components/sections/hero";
 import { ReviewsMarquee } from "@/components/sections/review-marquee";
-import { ProductCardWithSale } from "@/components/sections/sale-is-live";
 import { ShopVideo } from "@/components/sections/shop-video";
+import { WhatsAppButton } from "@/components/utils/wp";
+import { getReviewImages } from "@/lib/reviews";
+import { site } from "@/lib/site-config";
 
+// Rebuild the page at most once an hour.
+export const revalidate = 3600;
 
-export default function Home() {
+export default async function Home() {
+  const images = await getReviewImages();
+
   return (
-    <div
-      className="flex py-0 flex-col min-h-screen bg-primary/10"
-    
-    >
-      <div className="relative overflow-hidden">
-        <div className="px-4 pt-6">
-          <Hero />
+    <main className="flex min-h-screen flex-col">
+      <Hero />
+
+      {site.video.enabled && (
+        <div className="mx-auto w-full max-w-[440px] px-4 py-8">
+          <ShopVideo />
         </div>
-      </div>
+      )}
 
-      <div className="px-4 py-8">
-        <ShopVideo />
-      </div>
+      {/* Full width on purpose, so the marquee runs edge to edge. */}
+      <ReviewsMarquee images={images} />
 
-
-      <div className="px-4 py-8">
-        <ReviewsMarquee />
-      </div>
-
-      {/* <div className="px-4 my-8">
-        <ProductCardWithSale />
-      </div>*/}
-
-      {/* <BrandStory /> */}
-    </div>
+      <WhatsAppButton />
+    </main>
   );
 }

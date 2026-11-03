@@ -1,25 +1,26 @@
+import Image from "next/image";
 import { site } from "@/lib/site-config";
-import React from "react";
 
 interface BrandProps {
   small?: boolean;
   className?: string;
 }
 
-const Brand: React.FC<BrandProps> = ({ small = false, className = "" }) => {
-  // ✅ OPTIMIZED: If SVG, use inline SVG or optimized file
+// next/image serves resized AVIF/WebP at 1x and 2x. Priority = LCP preload.
+const Brand = ({ small = false, className = "" }: BrandProps) => {
+  const { src, width, height } = site.logo;
+  const w = small ? width : height;
   return (
-    <div className={className}>
-      {/* If SVG file is already optimized, keep using Image */}
-      <img
-        src="/logo.png" // ✅ Direct path if SVG
-        width={small ? 64 : 54}
-        height={small ? 54 : 54}
-        alt={site.name}
-        className={`object-contain rounded-full ${small ? "max-w-full" : "max-w-full"}`}
-        loading="eager"
-      />
-    </div>
+    <Image
+      src={src}
+      width={w}
+      height={height}
+      sizes={`${w}px`}
+      quality={70}
+      priority={small}
+      alt={site.name}
+      className={`rounded-full object-contain ${className}`}
+    />
   );
 };
 
