@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react';
-import OfferClient from './offer-client';
+import React, { Suspense } from "react";
+import OfferClient from "./offer-client";
 
 export default function OfferPage() {
   return (

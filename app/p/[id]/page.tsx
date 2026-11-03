@@ -16,7 +16,9 @@ interface ProductProps {
 }
 
 // Optimized metadata generation
-export async function generateMetadata({ params }: ProductProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: ProductProps): Promise<Metadata> {
   const resolvedParams = await params;
   const product = await getShoeById(resolvedParams.id);
 
@@ -27,8 +29,8 @@ export async function generateMetadata({ params }: ProductProps): Promise<Metada
     };
   }
 
-  const {  price } = product;
-  const productName =  "Footmart Sneakers";
+  const { price } = product;
+  const productName = "Footmart Sneakers";
   const ogDescription = `${productName} - ₹${price.toLocaleString()}. Buy now!`;
 
   return {
@@ -50,21 +52,20 @@ export default async function ProductPage({ params }: ProductProps) {
   if (!product) return notFound();
 
   // Destructure only what we need
-  const { 
-   
-    shoeBrand, 
-    category, 
-    sizes, 
-    colorVariants, 
-    images, 
-    description, 
-    madeIn, 
-    price, 
-    isOffer, 
-    offerPrice, 
-    buyOneGetOne 
+  const {
+    shoeBrand,
+    category,
+    sizes,
+    colorVariants,
+    images,
+    description,
+    madeIn,
+    price,
+    isOffer,
+    offerPrice,
+    buyOneGetOne,
   } = product;
-  const productName =  "Footmart Sneakers";
+  const productName = "Footmart Sneakers";
 
   // Optimized WhatsApp message - minimal content
   const message = `Hi, I want ${productName} (${category}). Size? ${process.env.NEXT_PUBLIC_BASE_URL}/p/${resolvedParams.id}`;
@@ -72,12 +73,8 @@ export default async function ProductPage({ params }: ProductProps) {
   return (
     <div className="md:mx-28 mx-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
         {/* Optimized Product Carousel */}
-        <ProductCarousel 
-          images={images} 
-          productName={productName} 
-        />
+        <ProductCarousel images={images} productName={productName} />
 
         {/* Product Details - Minimal re-renders */}
         <div className="space-y-4">
@@ -86,14 +83,19 @@ export default async function ProductPage({ params }: ProductProps) {
             <p className="uppercase text-sm font-semibold text-muted-foreground">
               {shoeBrand || site.name}
             </p>
-            <h1 className="text-xl md:text-2xl font-bold uppercase">{productName}</h1>
+            <h1 className="text-xl md:text-2xl font-bold uppercase">
+              {productName}
+            </h1>
           </div>
 
           {/* Badges */}
           <div className="flex flex-wrap gap-2 items-center">
-            <Badge className="rounded-md text-xs">{category?.toUpperCase()}</Badge>
-            <Badge className="rounded-md text-xs" variant={'secondary'}>
-              Sizes: {sizes?.slice(0, 3).join(", ")}{sizes?.length > 3 ? "..." : ""}
+            <Badge className="rounded-md text-xs">
+              {category?.toUpperCase()}
+            </Badge>
+            <Badge className="rounded-md text-xs" variant={"secondary"}>
+              Sizes: {sizes?.slice(0, 3).join(", ")}
+              {sizes?.length > 3 ? "..." : ""}
             </Badge>
           </div>
 
@@ -101,7 +103,9 @@ export default async function ProductPage({ params }: ProductProps) {
           <div>
             {isOffer ? (
               <div className="flex items-center gap-3">
-                <p className="font-bold text-xl">₹{offerPrice.toLocaleString("en-IN")}</p>
+                <p className="font-bold text-xl">
+                  ₹{offerPrice.toLocaleString("en-IN")}
+                </p>
                 <p className="text-lg text-muted-foreground line-through">
                   ₹{price.toLocaleString("en-IN")}
                 </p>
@@ -110,7 +114,9 @@ export default async function ProductPage({ params }: ProductProps) {
                 </span>
               </div>
             ) : (
-              <p className="font-bold text-xl">₹{price.toLocaleString("en-IN")}</p>
+              <p className="font-bold text-xl">
+                ₹{price.toLocaleString("en-IN")}
+              </p>
             )}
           </div>
 
@@ -123,28 +129,20 @@ export default async function ProductPage({ params }: ProductProps) {
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-3">
-            <Link 
-              href={`tel:${site.phone}`} 
-              className="block"
-              prefetch={false}
-            >
+            <Link href={`tel:${site.phone}`} className="block" prefetch={false}>
               <Button className="w-full" variant="outline" size="lg">
                 <PhoneCall className="h-4 w-4 mr-2" />
                 Call
               </Button>
             </Link>
-            
+
             <AddToCartButton product={product} />
           </div>
 
           {/* Additional Details - Collapsible would be better */}
           <div className="space-y-4 text-sm">
             <div>
-              <SHeading 
-                title="Product Details" 
-                nolink={true} 
-                size="sm"
-              />
+              <SHeading title="Product Details" nolink={true} size="sm" />
               <p className="text-muted-foreground mt-2 line-clamp-3">
                 {description || "No description available."}
               </p>

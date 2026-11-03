@@ -2,10 +2,29 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+  CardDescription,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import React, { useEffect, useState } from "react";
-import { Trash2, ShoppingBag, ArrowRight, Tag, Gift, Truck, Shield, Star, Info, Package, Zap } from "lucide-react";
+import {
+  Trash2,
+  ShoppingBag,
+  ArrowRight,
+  Tag,
+  Gift,
+  Truck,
+  Shield,
+  Star,
+  Info,
+  Package,
+  Zap,
+} from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import CartItem from "@/components/cart/cart-item";
@@ -45,11 +64,11 @@ export default function CartPage() {
   };
 
   // Calculate total amount
-  const calculateTotalAmount = () => 
+  const calculateTotalAmount = () =>
     cartItems.reduce((total, item) => {
       const productPrice = item.offerPrice || item.price;
       const extraAmount = Math.max(0, productPrice - 999);
-      
+
       let itemTotal = 999 + extraAmount;
 
       if (item.buyOneGetOne && item.freeProduct) {
@@ -62,37 +81,42 @@ export default function CartPage() {
     }, 0);
 
   // Calculate total items including free products
-  const calculateTotalItems = () => 
-    cartItems.reduce((total, item) => total + (item.buyOneGetOne && item.freeProduct ? 2 : 1), 0);
+  const calculateTotalItems = () =>
+    cartItems.reduce(
+      (total, item) => total + (item.buyOneGetOne && item.freeProduct ? 2 : 1),
+      0,
+    );
 
   // Calculate free items count
-  const calculateFreeItems = () => 
-    cartItems.filter(item => item.buyOneGetOne && item.freeProduct).length;
+  const calculateFreeItems = () =>
+    cartItems.filter((item) => item.buyOneGetOne && item.freeProduct).length;
 
   // Get product breakdown for the summary
   const getProductBreakdown = () => {
     return cartItems.flatMap((item) => {
       const productPrice = item.offerPrice || item.price;
       const extraAmount = Math.max(0, productPrice - 999);
-      
-      const items = [{
-        name: item.productName,
-        type: 'main' ,
-        price: 999,
-        extraAmount: extraAmount,
-        isPremium: extraAmount > 0
-      }];
+
+      const items = [
+        {
+          name: item.productName,
+          type: "main",
+          price: 999,
+          extraAmount: extraAmount,
+          isPremium: extraAmount > 0,
+        },
+      ];
 
       if (item.buyOneGetOne && item.freeProduct) {
         const freeProductPrice = item.freeProduct.price || 999;
         const freeProductExtraAmount = Math.max(0, freeProductPrice - 999);
-        
+
         items.push({
           name: item.freeProduct.productName,
-          type: 'free' as const,
+          type: "free" as const,
           price: 0,
           extraAmount: freeProductExtraAmount,
-          isPremium: freeProductExtraAmount > 0
+          isPremium: freeProductExtraAmount > 0,
         });
       }
 
@@ -100,10 +124,13 @@ export default function CartPage() {
     });
   };
 
-  const hasBOGO = cartItems.some(item => item.buyOneGetOne);
+  const hasBOGO = cartItems.some((item) => item.buyOneGetOne);
   const productBreakdown = getProductBreakdown();
   const totalBasePrice = cartItems.length * 999;
-  const totalExtraAmount = productBreakdown.reduce((total, item) => total + item.extraAmount, 0);
+  const totalExtraAmount = productBreakdown.reduce(
+    (total, item) => total + item.extraAmount,
+    0,
+  );
 
   if (isLoading) {
     return (
@@ -133,7 +160,8 @@ export default function CartPage() {
             </div>
             <h2 className="text-2xl font-bold mb-3">Your cart is empty</h2>
             <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-              Looks like you haven't added any products to your cart yet. Start shopping to find your perfect pair!
+              Looks like you haven't added any products to your cart yet. Start
+              shopping to find your perfect pair!
             </p>
             <Link href="/">
               <Button size="lg" className="gap-2">
@@ -152,7 +180,8 @@ export default function CartPage() {
               <div>
                 <h2 className="text-lg font-bold">Your Items</h2>
                 <p className="text-muted-foreground text-sm">
-                  {calculateTotalItems()} item{calculateTotalItems() !== 1 ? 's' : ''} in your cart
+                  {calculateTotalItems()} item
+                  {calculateTotalItems() !== 1 ? "s" : ""} in your cart
                   {/* {calculateFreeItems() > 0 && (
                     <span className="text-green-600 ml-2">
                       ({calculateFreeItems()} free)
@@ -210,22 +239,33 @@ export default function CartPage() {
                 {/* Products Breakdown */}
                 <div className="space-y-3">
                   {productBreakdown.map((product, index) => (
-                    <div key={index} className="flex justify-between items-start text-sm">
+                    <div
+                      key={index}
+                      className="flex justify-between items-start text-sm"
+                    >
                       <div className="flex-1 pr-2">
                         <div className="flex items-center gap-1">
                           <span className="font-medium">{product.name}</span>
-                          {product.type === 'free' && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                          {product.type === "free" && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs bg-green-50 text-green-700"
+                            >
                               FREE
                             </Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          {product.type === 'main' && (
-                            <span className="text-xs text-muted-foreground">Base: ₹999</span>
+                          {product.type === "main" && (
+                            <span className="text-xs text-muted-foreground">
+                              Base: ₹999
+                            </span>
                           )}
                           {product.isPremium && (
-                            <Badge variant="secondary" className="text-xs bg-amber-50 text-amber-700">
+                            <Badge
+                              variant="secondary"
+                              className="text-xs bg-amber-50 text-amber-700"
+                            >
                               +₹{product.extraAmount} extra
                             </Badge>
                           )}
@@ -233,9 +273,11 @@ export default function CartPage() {
                       </div>
                       <div className="text-right">
                         <div className="font-medium">
-                          {product.type === 'free' ? '₹0' : `₹${999 + product.extraAmount}`}
+                          {product.type === "free"
+                            ? "₹0"
+                            : `₹${999 + product.extraAmount}`}
                         </div>
-                        {product.type === 'free' && product.extraAmount > 0 && (
+                        {product.type === "free" && product.extraAmount > 0 && (
                           <div className="text-xs text-amber-600">
                             +₹{product.extraAmount} extra
                           </div>
@@ -253,11 +295,15 @@ export default function CartPage() {
                     <span className="text-muted-foreground">Base Price</span>
                     <span>₹{totalBasePrice}</span>
                   </div>
-                  
+
                   {totalExtraAmount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">selected products</span>
-                      <span className="text-amber-600">+₹{totalExtraAmount}</span>
+                      <span className="text-muted-foreground">
+                        selected products
+                      </span>
+                      <span className="text-amber-600">
+                        +₹{totalExtraAmount}
+                      </span>
                     </div>
                   )}
 
@@ -299,7 +345,7 @@ export default function CartPage() {
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </Link>
-                
+
                 <div className="text-xs text-muted-foreground text-center space-y-1">
                   <p className="flex items-center justify-center gap-1">
                     <Shield className="h-3 w-3" />
@@ -307,7 +353,8 @@ export default function CartPage() {
                   </p>
                   {hasBOGO && (
                     <p className="text-green-600">
-                      You saved ₹{calculateFreeItems() * 999} with free products!
+                      You saved ₹{calculateFreeItems() * 999} with free
+                      products!
                     </p>
                   )}
                 </div>

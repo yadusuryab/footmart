@@ -465,11 +465,13 @@ export default function CheckoutPage() {
     const d = customerDetails;
     const errors: string[] = [];
     if (!d.name.trim()) errors.push("Enter your name");
-    if (!isMobile(d.contact1)) errors.push("Enter a valid 10-digit mobile number");
+    if (!isMobile(d.contact1))
+      errors.push("Enter a valid 10-digit mobile number");
     if (!d.address.trim()) errors.push("Enter your address");
     if (!d.district.trim()) errors.push("Enter your district");
     if (!d.state.trim()) errors.push("Enter your state");
-    if (!/^\d{6}$/.test(d.pincode.trim())) errors.push("Enter a 6-digit pincode");
+    if (!/^\d{6}$/.test(d.pincode.trim()))
+      errors.push("Enter a 6-digit pincode");
     return errors;
   };
 
@@ -531,8 +533,7 @@ export default function CheckoutPage() {
           <CheckIcon className="h-8 w-8" />
         </span>
         <h1 className={H1}>
-          Order{" "}
-          <span className={CHIP}>sent.</span>
+          Order <span className={CHIP}>sent.</span>
         </h1>
         <p className="mb-8 mt-4 max-w-sm text-muted-foreground">
           Send the pre-filled message in WhatsApp to confirm your order. If it
@@ -611,7 +612,11 @@ export default function CheckoutPage() {
               <h2 id="pay-title" className={`mb-3 text-xl ${DISPLAY}`}>
                 Payment
               </h2>
-              <div role="radiogroup" aria-labelledby="pay-title" className="space-y-2">
+              <div
+                role="radiogroup"
+                aria-labelledby="pay-title"
+                className="space-y-2"
+              >
                 <PayOption
                   id="online"
                   checked={shippingMethod === "online"}
@@ -722,10 +727,20 @@ export default function CheckoutPage() {
           <div className="space-y-2.5 rounded-2xl bg-muted p-4">
             <Row label="Base price (2 pairs)" value={inr(BASE_PRICE)} />
             {pair1Extra > 0 && (
-              <Row indent muted label="Extra, pair 1" value={`+${inr(pair1Extra)}`} />
+              <Row
+                indent
+                muted
+                label="Extra, pair 1"
+                value={`+${inr(pair1Extra)}`}
+              />
             )}
             {pair2Extra > 0 && (
-              <Row indent muted label="Extra, pair 2" value={`+${inr(pair2Extra)}`} />
+              <Row
+                indent
+                muted
+                label="Extra, pair 2"
+                value={`+${inr(pair2Extra)}`}
+              />
             )}
             {hasRandomFreePair && (
               <Row indent muted label="Random surprise pair" value="FREE" />

@@ -9,7 +9,7 @@ const whatsapp = `${countryCode}${phone}`; // wa.me and tel: need the country co
 
 export const site = {
   /* ---------- Identity ---------- */
-  name: "footmart_",
+  name: "Footmart",
   brand: { first: "Foot", accent: "mart." }, // wordmark: Foot[mart.]
   logo: { src: "/logo.avif", width: 64, height: 54 },
   instagram: "footmart_",

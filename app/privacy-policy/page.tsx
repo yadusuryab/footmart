@@ -1,68 +1,304 @@
-import Head from 'next/head';
-import Link from 'next/link';
+// app/privacy/page.tsx
+// Server component: ships no client JavaScript, no images and no icon library.
+import type { Metadata } from "next";
+import Link from "next/link";
+import { site } from "@/lib/site-config";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy | Footmart",
+  description:
+    "Read the privacy policy of Footmart to understand how we handle your data.",
+};
+
+const LAST_UPDATED = "3 November 2026"; // update when you change the policy
+
+const DISPLAY = "font-black italic tracking-tighter";
+
+type Section = {
+  id: string;
+  title: string;
+  intro?: string;
+  items?: [term: string, description: string][];
+  outro?: string;
+};
+
+const sections: Section[] = [
+  {
+    id: "information",
+    title: "Information we collect",
+    intro: "When you place an order, we ask for the following.",
+    items: [
+      ["Name", "Your full name, used to process and fulfil your order."],
+      [
+        "Phone numbers",
+        "One required number and one optional second number. We use them to confirm your order, share status updates and give you support.",
+      ],
+      [
+        "Delivery address",
+        "Your address, district, state, pincode and an optional landmark, so your order reaches you.",
+      ],
+      [
+        "Instagram ID",
+        "Optional. If you give it, we may use it to follow up on your order.",
+      ],
+      [
+        "Order details",
+        "The products, sizes, add-ons and payment method you choose.",
+      ],
+      [
+        "Cart data",
+        "Your cart is saved in your browser, on your device, so it survives a page refresh. We do not create an account for you.",
+      ],
+      [
+        "Anything else you share",
+        "Any other details you choose to send us to improve your shopping experience.",
+      ],
+    ],
+  },
+  {
+    id: "use",
+    title: "How we use your information",
+    items: [
+      [
+        "Order processing",
+        "To process and fulfil your orders accurately and efficiently.",
+      ],
+      [
+        "Communication",
+        "To send order confirmations and status updates, and to answer your questions.",
+      ],
+      [
+        "Service improvement",
+        "To analyse how the site is used, so we can improve the website, our products and your shopping experience.",
+      ],
+      [
+        "Marketing",
+        "To send promotions and special offers, only if you have chosen to receive them.",
+      ],
+      [
+        "Legal compliance",
+        "To comply with applicable laws, regulations and legal obligations.",
+      ],
+    ],
+  },
+  {
+    id: "sharing",
+    title: "Sharing your information",
+    intro:
+      "Your privacy matters to us. We share your personal information with trusted third parties only in these situations.",
+    items: [
+      [
+        "Suppliers",
+        "The information needed for our suppliers to fulfil your order.",
+      ],
+      [
+        "Service providers",
+        "Third parties that handle payment processing, shipping and other essential functions.",
+      ],
+      [
+        "WhatsApp",
+        "Orders reach us as a WhatsApp message. WhatsApp is run by Meta and has its own privacy policy.",
+      ],
+      [
+        "Legal requirements",
+        "When the law requires it, or in response to a valid request from a public authority.",
+      ],
+    ],
+  },
+  {
+    id: "security",
+    title: "Data security",
+    intro:
+      "We use a range of security measures to protect your personal information from unauthorised access, use or disclosure. These include encryption, firewalls and secure server hosting.",
+  },
+  {
+    id: "rights",
+    title: "Your rights",
+    items: [
+      [
+        "Access",
+        "Ask for a copy of the personal information we hold about you.",
+      ],
+      ["Correction", "Ask us to fix anything that is inaccurate."],
+      [
+        "Deletion",
+        "Ask us to delete your personal information, subject to legal exceptions.",
+      ],
+      ["Opt-out", "Stop receiving marketing messages at any time."],
+    ],
+    outro: "To use any of these rights, contact us using the details below.",
+  },
+  {
+    id: "changes",
+    title: "Changes to this policy",
+    intro:
+      "We may update this Privacy Policy from time to time. Updates will be posted on this page.",
+  },
+  {
+    id: "links",
+    title: "Third-party links",
+    intro:
+      "Our website may link to third-party websites. We are not responsible for their content or privacy practices.",
+  },
+  {
+    id: "children",
+    title: "Children’s privacy",
+    intro:
+      "Our services are not directed to anyone under the age of 13. We do not knowingly collect personal information from children.",
+  },
+];
+
+const bodyText = "max-w-prose text-[15px] leading-7 text-foreground/80";
 
 export default function PrivacyPolicy() {
   return (
-    <>
-      <Head>
-        <title>Privacy Policy - footmart Store</title>
-        <meta name="description" content="Read the privacy policy of footmart Store to understand how we handle your data." />
-      </Head>
-      <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-4">Privacy Policy</h1>
-        <p>At footmart Store, we are dedicated to protecting your privacy and securing the personal information you provide. This Privacy Policy outlines our practices regarding the collection, use, and sharing of your data when you visit our website or make purchases.</p>
+    <main className="mx-auto max-w-2xl px-4 pb-24 pt-4 duration-500 animate-in fade-in slide-in-from-bottom-3 motion-reduce:animate-none sm:px-6">
+      <h1
+        className={`text-[clamp(2.5rem,10vw,4rem)] leading-[1] ${DISPLAY}`}
+      >
+        Privacy
+        <br />
+        <span className="rounded-md bg-black px-1.5 py-0.5 text-primary">
+          policy.
+        </span>
+      </h1>
 
-        <h2 className="text-2xl font-semibold mt-6">1. Information We Collect</h2>
-        <ul className="list-disc ml-6">
-          <li><strong>Name:</strong> Your full name, used for processing and fulfilling your orders.</li>
-          <li><strong>Phone Number:</strong> Used to communicate with you about your order status, provide updates, and offer customer support.</li>
-          <li><strong>Address:</strong> Your shipping address, including City, State, and Pin Code, to ensure accurate delivery.</li>
-          {/* <li><strong>Instagram ID:</strong> Collected only if provided by you, to engage with you on social media platforms.</li> */}
-          <li><strong>Additional Information:</strong> Any other details you voluntarily choose to share with us to improve your shopping experience.</li>
-        </ul>
+      <p className={`mt-6 ${bodyText}`}>
+        At Footmart, we are dedicated to protecting your privacy and securing
+        the personal information you provide. This policy explains how we
+        collect, use and share your data when you visit our website or place an
+        order.
+      </p>
+      <p className="mt-2 text-xs font-semibold text-muted-foreground">
+        Last updated {LAST_UPDATED}
+      </p>
 
-        <h2 className="text-2xl font-semibold mt-6">2. How We Use Your Information</h2>
-        <ul className="list-disc ml-6">
-          <li><strong>Order Processing:</strong> To process and fulfill your orders accurately and efficiently.</li>
-          <li><strong>Customer Communication:</strong> To send you order confirmations, status updates, and respond to your inquiries.</li>
-          <li><strong>Service Improvement:</strong> To analyze user behavior, helping us enhance our website, products, and overall shopping experience.</li>
-          <li><strong>Marketing:</strong> To send promotional materials and special offers, if you have opted to receive such communications.</li>
-          <li><strong>Legal Compliance:</strong> To comply with applicable laws, regulations, and legal obligations.</li>
-        </ul>
+      {/* Jump list */}
+      <nav aria-label="On this page" className="mt-8">
+        <ol className="grid gap-1 sm:grid-cols-2">
+          {sections.map((s, i) => (
+            <li key={s.id}>
+              <a
+                href={`#${s.id}`}
+                className="flex items-baseline gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black motion-reduce:transition-none"
+              >
+                <span className="w-4 text-xs font-bold text-muted-foreground">
+                  {i + 1}
+                </span>
+                <span className="text-sm font-bold tracking-tight">
+                  {s.title}
+                </span>
+              </a>
+            </li>
+          ))}
+          <li>
+            <a
+              href="#contact"
+              className="flex items-baseline gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black motion-reduce:transition-none"
+            >
+              <span className="w-4 text-xs font-bold text-muted-foreground">
+                {sections.length + 1}
+              </span>
+              <span className="text-sm font-bold tracking-tight">
+                Contact us
+              </span>
+            </a>
+          </li>
+        </ol>
+      </nav>
 
-        <h2 className="text-2xl font-semibold mt-6">3. Sharing Your Information</h2>
-        <p>Your privacy is important to us. We may share your personal information with trusted third parties only in the following situations:</p>
-        <ul className="list-disc ml-6">
-          <li><strong>Suppliers:</strong> Necessary information shared with our suppliers to fulfill your orders.</li>
-          <li><strong>Service Providers:</strong> Third-party providers for payment processing, shipping, and other essential functions.</li>
-          <li><strong>Legal Requirements:</strong> Disclosures made when required by law or in response to valid requests from public authorities.</li>
-        </ul>
+      {/* Sections */}
+      {sections.map((s, i) => (
+        <section
+          key={s.id}
+          id={s.id}
+          aria-labelledby={`${s.id}-title`}
+          className="mt-12 scroll-mt-28"
+        >
+          <h2
+            id={`${s.id}-title`}
+            className={`flex items-baseline gap-3 text-2xl ${DISPLAY}`}
+          >
+            <span className="text-base text-muted-foreground">{i + 1}</span>
+            {s.title}
+          </h2>
 
-        <h2 className="text-2xl font-semibold mt-6">4. Data Security</h2>
-        <p>We use a range of security measures to protect your personal information from unauthorized access, use, or disclosure. These include encryption, firewalls, and secure server hosting.</p>
+          {s.intro && <p className={`mt-3 ${bodyText}`}>{s.intro}</p>}
 
-        <h2 className="text-2xl font-semibold mt-6">5. Your Rights</h2>
-        <ul className="list-disc ml-6">
-          <li><strong>Access:</strong> Request access to the personal information we hold about you.</li>
-          <li><strong>Correction:</strong> Request corrections to inaccuracies in your personal data.</li>
-          <li><strong>Deletion:</strong> Request deletion of your personal information, subject to legal exceptions.</li>
-          <li><strong>Opt-Out:</strong> Opt-out of receiving marketing communications.</li>
-        </ul>
+          {s.items && (
+            <dl className="mt-4 border-b border-black/10">
+              {s.items.map(([term, description]) => (
+                <div
+                  key={term}
+                  className="border-t border-black/10 py-3 sm:grid sm:grid-cols-[10rem_1fr] sm:gap-6"
+                >
+                  <dt className="text-sm font-bold tracking-tight">{term}</dt>
+                  <dd className="mt-1 text-[15px] leading-7 text-foreground/80 sm:mt-0">
+                    {description}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
 
-        <h2 className="text-2xl font-semibold mt-6">6. Changes to the Privacy Policy</h2>
-        <p>We may update this Privacy Policy periodically. Updates will be posted on this page.</p>
+          {s.outro && <p className={`mt-4 ${bodyText}`}>{s.outro}</p>}
+        </section>
+      ))}
 
-        <h2 className="text-2xl font-semibold mt-6">7. Third-Party Links</h2>
-        <p>Our website may contain links to third-party websites. We are not responsible for the content or privacy practices of these sites.</p>
+      {/* Contact */}
+      <section
+        id="contact"
+        aria-labelledby="contact-title"
+        className="mt-12 scroll-mt-28"
+      >
+        <h2
+          id="contact-title"
+          className={`flex items-baseline gap-3 text-2xl ${DISPLAY}`}
+        >
+          <span className="text-base text-muted-foreground">
+            {sections.length + 1}
+          </span>
+          Contact us
+        </h2>
+        <p className={`mt-3 ${bodyText}`}>
+          Questions about this policy, or want to use one of your rights?
+          Message us.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <a
+            href={`https://wa.me/${site.phone}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-12 items-center rounded-full bg-black px-6 text-sm font-bold text-white transition-transform duration-300 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+          >
+            WhatsApp
+          </a>
+          <a
+            href={`https://instagram.com/${site.instagram}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-12 items-center rounded-full bg-muted px-6 text-sm font-bold transition-transform duration-300 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+          >
+            @{site.instagram}
+          </a>
+        </div>
+      </section>
 
-        <h2 className="text-2xl font-semibold mt-6">8. Children's Privacy</h2>
-        <p>Our services are not directed to individuals under the age of 13. We do not knowingly collect personal information from children.</p>
-        
-        <h2 className="text-xl font-semibold mt-6">Website made by Shopigo.</h2>
-
-        <p>Instagram : <Link href={'https://instagram.com/getshopigo'} className='text-secondary underline'>Shopigo Instagram</Link></p>
-        <p>Website : <Link href={'https://myshopigo.shop'} className='text-secondary underline mt-1'>Shopigo Website</Link></p>
-      </div>
-    </>
+      {/* Credit */}
+      <footer className="mt-16 border-t border-black/10 pt-6 text-sm text-muted-foreground">
+        <p className="font-bold text-foreground">Website made by Yadulabs.</p>
+        <p className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+          <Link
+            href="https://instagram.com/yadulabs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline underline-offset-4"
+          >
+            yadulabs on Instagram
+          </Link>
+         
+        </p>
+      </footer>
+    </main>
   );
 }

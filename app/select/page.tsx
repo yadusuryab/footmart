@@ -1,7 +1,7 @@
-'use client'
-import { useState, useEffect } from 'react';
-import SelectPageComponent from './selectpage';
-import { getAllShoes } from '@/lib/vehicleQueries';
+"use client";
+import { useState, useEffect } from "react";
+import SelectPageComponent from "./selectpage";
+import { getAllShoes } from "@/lib/vehicleQueries";
 
 interface SelectPageProps {
   shoes: any[];
