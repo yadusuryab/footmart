@@ -16,8 +16,8 @@ const marqueeItems = ["Cash on Delivery", "All India Shipping", "Kerala Based"];
 
 const menuLinks = [
   { label: "Home", href: "/" },
- { label: "Privacy Policy", href: "/privacy" },
-  { label: "Terms & Conditions", href: "/terms" },
+ { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms & Conditions", href: "/T&C" },
   { label: "Instagram", href: "https://instagram.com/footmart_" },
   { label: "Whatsapp", href: "https://wa.me/919876543210" },
 ];
