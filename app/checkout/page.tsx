@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CustomerDetailsForm } from "@/components/checkout/checkout-form";
 import { site } from "@/lib/site-config";
+import { DEFAULT_STATE } from "@/lib/indian-states";
 import { client } from "@/sanity/lib/client"; // adjust path to your Sanity client
 
 interface CartItem {
@@ -46,8 +47,15 @@ const getProductImageUrl = (product: any): string => {
 const BASE_PRICE = 1499;
 const ONLINE_SHIPPING = 150;
 const COD_CHARGE = 300;
+const OUTSIDE_KERALA_ONLINE_EXTRA = 100; // online payment only
 const SHOE_CLEANER_PRICE = 80;
 const SOCKS_PRICE = 99;
+
+// Any selected state other than Kerala. Empty state = not charged.
+const isOutsideKerala = (state: string) => {
+  const s = state.trim().toLowerCase();
+  return s !== "" && s !== "kerala";
+};
 
 // freeSocksOffer toggles the Flame Socks add-on (visibility only).
 const SETTINGS_QUERY = `*[_type == "settings"][0]{ freeSocksOffer, shoeCleanerAddon }`;
@@ -372,7 +380,7 @@ export default function CheckoutPage() {
     contact2: "",
     address: "",
     district: "",
-    state: "",
+    state: DEFAULT_STATE,
     pincode: "",
     landmark: "",
     instagramId: "",
@@ -457,8 +465,19 @@ export default function CheckoutPage() {
     (freeProduct?.price || BASE_PRICE) - BASE_PRICE,
   );
   const subtotal = BASE_PRICE + pair1Extra + pair2Extra;
+
+  // Outside Kerala: +₹100 shipping on online payment only (COD unchanged)
+  const outsideKerala = isOutsideKerala(customerDetails.state);
+  const outsideKeralaExtra =
+    shippingMethod === "online" && outsideKerala
+      ? OUTSIDE_KERALA_ONLINE_EXTRA
+      : 0;
+  const onlineShipping =
+    ONLINE_SHIPPING + (outsideKerala ? OUTSIDE_KERALA_ONLINE_EXTRA : 0);
+  const onlineSavings = Math.max(0, COD_CHARGE - onlineShipping);
   const shippingCharge =
-    shippingMethod === "online" ? ONLINE_SHIPPING : COD_CHARGE;
+    shippingMethod === "online" ? onlineShipping : COD_CHARGE;
+
   const cleanerCharge =
     settings.shoeCleanerAddon && addShoeCleaner ? SHOE_CLEANER_PRICE : 0;
   const socksCharge = settings.freeSocksOffer && addSocks ? SOCKS_PRICE : 0;
@@ -472,6 +491,11 @@ export default function CheckoutPage() {
     if (formErrors.length > 0) setFormErrors([]);
   };
 
+  const handleStateChange = (state: string) => {
+    setCustomerDetails((prev) => ({ ...prev, state }));
+    if (formErrors.length > 0) setFormErrors([]);
+  };
+
   const validate = () => {
     const d = customerDetails;
     const errors: string[] = [];
@@ -480,7 +504,7 @@ export default function CheckoutPage() {
       errors.push("Enter a valid 10-digit mobile number");
     if (!d.address.trim()) errors.push("Enter your address");
     if (!d.district.trim()) errors.push("Enter your district");
-    if (!d.state.trim()) errors.push("Enter your state");
+    if (!d.state.trim()) errors.push("Select your state");
     if (!/^\d{6}$/.test(d.pincode.trim()))
       errors.push("Enter a 6-digit pincode");
     return errors;
@@ -506,8 +530,17 @@ export default function CheckoutPage() {
 
       const freePairLine = `\n\n*PAIR ${randomPairNo} (FREE)*\n🎁 Random Surprise Pair\nSize: ${randomPairSize || "N/A"}\nStyle: picked by us at packing`;
 
+      const shippingLine =
+        shippingMethod === "online"
+          ? `₹${shippingCharge} (Online Payment${
+              outsideKeralaExtra > 0
+                ? `, incl. ₹${outsideKeralaExtra} outside Kerala`
+                : ""
+            })`
+          : `₹${COD_CHARGE} (Cash on Delivery)`;
+
       const msg =
-        `*${pairCount} PAIR SHOES ORDER*\n\n${productMessages}${freePairLine}\n\n*CUSTOMER DETAILS*\nName: ${customerDetails.name}\nInstagram: ${customerDetails.instagramId}\nAddress: ${customerDetails.address}\nDistrict: ${customerDetails.district}\nState: ${customerDetails.state}\nPincode: ${customerDetails.pincode}\nLandmark: ${customerDetails.landmark || "N/A"}\nContact No.1: ${customerDetails.contact1}\nContact No.2: ${customerDetails.contact2 || "N/A"}\n\n*ORDER SUMMARY*\nBase Price: ₹${BASE_PRICE}\nPair 1 Extra: ₹${pair1Extra}\nPair 2 Extra: ₹${pair2Extra}\n🎁 FREE Random Pair Included (Pair ${randomPairNo}, Size ${randomPairSize || "N/A"})\n${cleanerCharge > 0 ? `Add-on: Shoe Cleaner (+₹${SHOE_CLEANER_PRICE})\n` : ""}${socksCharge > 0 ? `Add-on: Flame Socks (+₹${SOCKS_PRICE})\n` : ""}Shipping: ${shippingMethod === "online" ? `₹${ONLINE_SHIPPING} (Online Payment)` : `₹${COD_CHARGE} (Cash on Delivery)`}\n*GRAND TOTAL: ₹${totalAmount}*`.trim();
+        `*${pairCount} PAIR SHOES ORDER*\n\n${productMessages}${freePairLine}\n\n*CUSTOMER DETAILS*\nName: ${customerDetails.name}\nInstagram: ${customerDetails.instagramId}\nAddress: ${customerDetails.address}\nDistrict: ${customerDetails.district}\nState: ${customerDetails.state}\nPincode: ${customerDetails.pincode}\nLandmark: ${customerDetails.landmark || "N/A"}\nContact No.1: ${customerDetails.contact1}\nContact No.2: ${customerDetails.contact2 || "N/A"}\n\n*ORDER SUMMARY*\nBase Price: ₹${BASE_PRICE}\nPair 1 Extra: ₹${pair1Extra}\nPair 2 Extra: ₹${pair2Extra}\n🎁 FREE Random Pair Included (Pair ${randomPairNo}, Size ${randomPairSize || "N/A"})\n${cleanerCharge > 0 ? `Add-on: Shoe Cleaner (+₹${SHOE_CLEANER_PRICE})\n` : ""}${socksCharge > 0 ? `Add-on: Flame Socks (+₹${SOCKS_PRICE})\n` : ""}Shipping: ${shippingLine}\n*GRAND TOTAL: ₹${totalAmount}*`.trim();
 
       const url = `https://wa.me/${site.phone}?text=${encodeURIComponent(msg)}`;
 
@@ -635,13 +668,17 @@ export default function CheckoutPage() {
                   checked={shippingMethod === "online"}
                   onSelect={() => setShippingMethod("online")}
                   title="Online payment"
-                  tag={`+${inr(ONLINE_SHIPPING)} shipping`}
+                  tag={`+${inr(onlineShipping)} shipping`}
                   strongTag
                 >
                   <p className="font-bold text-black">
-                    Save {inr(COD_CHARGE - ONLINE_SHIPPING)} vs COD
+                    Save {inr(onlineSavings)} vs COD
                   </p>
                   <p>Delivery in 5 to 8 days</p>
+                  <p>
+                    Outside Kerala: +{inr(OUTSIDE_KERALA_ONLINE_EXTRA)}{" "}
+                    shipping, applied when you choose your state.
+                  </p>
                 </PayOption>
 
                 <PayOption
@@ -653,7 +690,7 @@ export default function CheckoutPage() {
                 >
                   <p>
                     {inr(COD_CHARGE)} is collected in advance. Pay online to
-                    save {inr(COD_CHARGE - ONLINE_SHIPPING)}.
+                    save {inr(onlineSavings)}.
                   </p>
                 </PayOption>
               </div>
@@ -727,6 +764,7 @@ export default function CheckoutPage() {
               <CustomerDetailsForm
                 customerDetails={customerDetails}
                 handleInputChange={handleInputChange}
+                handleStateChange={handleStateChange}
               />
             </div>
           </>
@@ -780,6 +818,14 @@ export default function CheckoutPage() {
               }
               value={inr(shippingCharge)}
             />
+            {outsideKeralaExtra > 0 && (
+              <Row
+                indent
+                muted
+                label="Outside Kerala (included above)"
+                value={`+${inr(outsideKeralaExtra)}`}
+              />
+            )}
             <div className="flex items-baseline justify-between border-t border-black/10 pt-3">
               <span className="text-sm font-bold">Total</span>
               <span className={`text-2xl ${DISPLAY}`}>{inr(totalAmount)}</span>
@@ -792,8 +838,7 @@ export default function CheckoutPage() {
               onClick={() => setShippingMethod("online")}
               className="mt-3 w-full text-center text-sm font-bold underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
             >
-              Switch to online payment and save{" "}
-              {inr(COD_CHARGE - ONLINE_SHIPPING)}
+              Switch to online payment and save {inr(onlineSavings)}
             </button>
           )}
 

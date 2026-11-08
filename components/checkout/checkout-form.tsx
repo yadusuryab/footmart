@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { StateSelect } from "./state-select";
 
 interface CustomerDetailsFormProps {
   customerDetails: {
@@ -17,14 +18,16 @@ interface CustomerDetailsFormProps {
   handleInputChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
+  handleStateChange: (state: string) => void;
 }
 
 export const CustomerDetailsForm = ({
   customerDetails,
   handleInputChange,
+  handleStateChange,
 }: CustomerDetailsFormProps) => (
   <div className="space-y-4">
-    {/* Name & Email */}
+    {/* Name */}
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
         <Label htmlFor="name">Full Name</Label>
@@ -37,7 +40,6 @@ export const CustomerDetailsForm = ({
           className="mt-1"
         />
       </div>
-    
     </div>
 
     {/* Contact Numbers */}
@@ -120,13 +122,10 @@ export const CustomerDetailsForm = ({
       </div>
       <div>
         <Label htmlFor="state">State</Label>
-        <Input
+        <StateSelect
           id="state"
-          name="state"
-          placeholder="Your state"
           value={customerDetails.state}
-          onChange={handleInputChange}
-          className="mt-1"
+          onChange={handleStateChange}
         />
       </div>
     </div>
