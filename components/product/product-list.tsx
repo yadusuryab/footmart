@@ -143,7 +143,7 @@ function ProductList({ price }: ProductListProps) {
             />
           ))}
         </div>
-
+  {bogoProducts.length }
         {loading && (
           <div className="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-4 mt-4">
             {Array.from({ length: 4 }, (_, i) => <ProductCardSkeleton key={`load-${i}`} />)} {/* ✅ Fewer loading skeletons */}
